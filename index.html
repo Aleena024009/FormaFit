@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FormaFit</title>
+  <meta name="description" content="Personal fitness companion for nutrition, strength training and body measurements.">
+  <meta name="theme-color" content="#0B3A31">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FormaFit">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <img src="icons/icon.svg" alt="" class="logo">
+    <div>
+      <h1>FormaFit</h1>
+      <p id="greeting" class="muted"></p>
+    </div>
+  </header>
+
+  <main id="view" aria-live="polite"></main>
+
+  <nav class="tabbar" id="tabbar" hidden>
+    <a href="#today" data-tab="today"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18" /></svg>Today</a>
+    <a href="#workout" data-tab="workout"><svg viewBox="0 0 24 24"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12" /></svg>Workout</a>
+    <a href="#progress" data-tab="progress"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8" /></svg>Progress</a>
+    <a href="#profile" data-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>Profile</a>
+  </nav>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
