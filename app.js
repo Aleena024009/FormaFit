@@ -29,14 +29,39 @@ function emptyState() {
   };
 }
 
+// Older saves stored plan exercises as plain strings.
+function normalize(data) {
+  const s = { ...emptyState(), ...data };
+  s.plan = s.plan.map((p) => ({
+    ...p,
+    exercises: p.exercises.map((e) => (typeof e === 'string' ? parseExercise(e) : e))
+  }));
+  return s;
+}
+
 function load() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return { ...emptyState(), ...JSON.parse(raw) };
+    if (raw) return normalize(JSON.parse(raw));
   } catch (err) {
     console.warn('Could not read saved data', err);
   }
   return emptyState();
+}
+
+// Plan lines look like "Bench Press, 3 x 8-10"; the sets part is optional.
+function parseExercise(line) {
+  const m = line.match(/^(.*),\s*(\d+)\s*[x×]\s*(.+)$/i);
+  if (!m) return { name: line.trim(), sets: null, reps: '' };
+  return { name: m[1].trim(), sets: Number(m[2]), reps: m[3].trim() };
+}
+
+function exerciseLine(e) {
+  return e.sets ? `${e.name}, ${e.sets} x ${e.reps}` : e.name;
+}
+
+function setsReps(e) {
+  return e.sets ? `${e.sets} × ${e.reps}` : '';
 }
 
 let state = load();
@@ -268,8 +293,15 @@ function renderToday() {
         ${plan.focus ? `<span class="pill">${esc(plan.focus)}</span>` : ''}
       </div>
       ${plan.exercises.length
-        ? `<ul class="list">${plan.exercises.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>`
-        : `<p class="empty">No plan for ${DAYS[parseKey(viewDate).getDay()]}. <a href="#workout">Set up your weekly plan</a>.</p>`}
+        ? `<ul class="list">${plan.exercises.map((e) => `
+            <li>
+              <span class="grow">${esc(e.name)}</span>
+              <span class="muted small">${setsReps(e)}</span>
+              <button class="icon" data-act="log-ex" data-name="${esc(e.name)}" aria-label="Log a set of ${esc(e.name)}">Log</button>
+            </li>`).join('')}</ul>`
+        : plan.focus
+          ? '<p class="empty">Rest day. A light walk or stretching is enough.</p>'
+          : `<p class="empty">No plan for ${DAYS[parseKey(viewDate).getDay()]}. <a href="#workout">Pick a program or set up your weekly plan</a>.</p>`}
       <button class="${d.workoutDone ? '' : 'ghost'}" data-act="toggle-workout">
         ${d.workoutDone ? '✓ Workout done' : 'Mark workout done'}
       </button>
@@ -357,11 +389,14 @@ function foodHistory() {
 
 /* ---------- Workout ---------- */
 
+let pendingExercise = null;
+
 function renderWorkout() {
   const todayIdx = new Date().getDay();
-  const exercises = new Set([...state.plan.flatMap((p) => p.exercises), ...state.sets.map((s) => s.exercise)]);
+  const exercises = new Set([...state.plan.flatMap((p) => p.exercises.map((e) => e.name)), ...state.sets.map((s) => s.exercise)]);
   const byDate = groupBy([...state.sets].sort((a, b) => b.date.localeCompare(a.date) || b.ts - a.ts), (s) => s.date);
   const prs = personalBests();
+  const hasPlan = state.plan.some((p) => p.focus || p.exercises.length);
 
   $('#view').innerHTML = `
     <section class="card">
@@ -379,17 +414,42 @@ function renderWorkout() {
     </section>
 
     <section class="card">
+      <h2>Push Pull Legs programs</h2>
+      <form id="program-form" class="grid-2">
+        <label style="grid-column:1/-1">Program
+          <select name="program">${PROGRAMS.map((p) => `<option value="${p.id}" ${state.programId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}</select>
+        </label>
+        <label style="grid-column:1/-1">Schedule
+          <select name="schedule">${Object.entries(SCHEDULES).map(([k, s]) => `<option value="${k}" ${(state.scheduleId ?? 'six') === k ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
+        </label>
+        <button type="button" class="ghost" data-act="preview-program">Preview</button>
+        <button type="submit">Use program</button>
+      </form>
+      <div id="program-preview"></div>
+      ${hasPlan ? '<p class="muted small" style="margin:0">Using a program replaces your current weekly plan. Your logged sets are kept.</p>' : ''}
+    </section>
+
+    <section class="card">
       <h2>Weekly plan</h2>
-      <p class="muted small" style="margin:0">Write your own split. One exercise per line.</p>
+      <p class="muted small" style="margin:0">One exercise per line, like <em>Bench Press, 3 x 8-10</em>. Leave a day empty to rest.</p>
       ${state.plan.map((p, i) => `
         <details ${i === todayIdx ? 'open' : ''}>
           <summary>${DAYS[i]}${i === todayIdx ? ' · today' : ''} <span class="muted small" style="font-weight:400">${esc(p.focus)}</span></summary>
           <form class="plan-form" data-day="${i}" style="display:grid;gap:10px">
-            <label>Focus<input name="focus" value="${esc(p.focus)}" placeholder="e.g. Lower body, Rest"></label>
-            <label>Exercises<textarea name="exercises" placeholder="One per line">${esc(p.exercises.join('\n'))}</textarea></label>
+            <label>Focus<input name="focus" value="${esc(p.focus)}" placeholder="e.g. Push, Rest"></label>
+            <label>Exercises<textarea name="exercises" rows="${Math.max(4, p.exercises.length + 1)}" placeholder="One per line">${esc(p.exercises.map(exerciseLine).join('\n'))}</textarea></label>
             <button type="submit" class="ghost">Save ${DAYS[i]}</button>
           </form>
         </details>`).join('')}
+    </section>
+
+    <section class="card">
+      <details>
+        <summary>Training tips</summary>
+        <ul class="list">${TRAINING_TIPS.map((t) => `<li>${t}</li>`).join('')}</ul>
+        <h3 style="margin-top:12px">Best rep ranges</h3>
+        <ul class="list" style="margin-top:6px">${REP_RANGES.map(([goal, reps]) => `<li><span class="grow">${goal}</span><span class="muted small">${reps}</span></li>`).join('')}</ul>
+      </details>
     </section>
 
     ${prs.length ? `
@@ -434,12 +494,47 @@ function renderWorkout() {
     const f = formData(form);
     state.plan[Number(form.dataset.day)] = {
       focus: f.focus.trim(),
-      exercises: f.exercises.split('\n').map((s) => s.trim()).filter(Boolean)
+      exercises: f.exercises.split('\n').map((s) => s.trim()).filter(Boolean).map(parseExercise)
     };
     save();
     toast(`${DAYS[form.dataset.day]} saved`);
     renderWorkout();
   }));
+
+  $('#program-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = formData(e.target);
+    if (hasPlan && !confirm('Replace your weekly plan with this program?')) return;
+    applyProgram(f.program, f.schedule);
+    toast('Program added to your weekly plan');
+    renderWorkout();
+  });
+
+  if (pendingExercise) {
+    $('#set-form').exercise.value = pendingExercise;
+    $('#set-form').weight.focus();
+    pendingExercise = null;
+  }
+}
+
+const PPL_LABELS = { push: 'Push', pull: 'Pull', legs: 'Legs' };
+
+function applyProgram(programId, scheduleId) {
+  const program = PROGRAMS.find((p) => p.id === programId);
+  state.plan = SCHEDULES[scheduleId].days.map((type) => ({
+    focus: type ? PPL_LABELS[type] : 'Rest',
+    exercises: type ? program[type].map(([name, sets, reps]) => ({ name, sets, reps })) : []
+  }));
+  state.programId = programId;
+  state.scheduleId = scheduleId;
+  save();
+}
+
+function programPreview(programId) {
+  const program = PROGRAMS.find((p) => p.id === programId);
+  return Object.entries(PPL_LABELS).map(([type, label]) => `
+    <h3 style="margin:10px 0 6px">${label}</h3>
+    <ul class="list">${program[type].map(([name, sets, reps]) => `<li><span class="grow">${name}</span><span class="muted small">${sets} × ${reps}</span></li>`).join('')}</ul>`).join('');
 }
 
 function personalBests() {
@@ -721,7 +816,7 @@ async function importBackup(e) {
     const data = JSON.parse(await f.text());
     if (!data || typeof data !== 'object' || !('profile' in data)) throw new Error('Not a FormaFit backup');
     if (!confirm('Replace all current data with this backup?')) return;
-    state = { ...emptyState(), ...data };
+    state = normalize(data);
     save();
     toast('Backup restored');
     route();
@@ -769,6 +864,13 @@ document.addEventListener('click', (e) => {
       renderToday();
       break;
     }
+    case 'log-ex':
+      pendingExercise = el.dataset.name;
+      location.hash = '#workout';
+      break;
+    case 'preview-program':
+      $('#program-preview').innerHTML = programPreview($('#program-form').program.value);
+      break;
     case 'del-set':
       state.sets = state.sets.filter((s) => s.id !== id);
       save();

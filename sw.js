@@ -1,9 +1,10 @@
-const CACHE = 'formafit-v1';
+const CACHE = 'formafit-v2';
 const SHELL = [
   './',
   './index.html',
   './styles.css',
   './app.js',
+  './programs.js',
   './manifest.webmanifest',
   './icons/icon.svg',
   './icons/icon-192.png',
