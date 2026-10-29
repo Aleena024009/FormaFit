@@ -475,3 +475,19 @@ dialog#sheet h3 { margin-top: 4px; }
 .video-link .outline { fill: none; stroke: var(--accent); stroke-width: 2; }
 .video-link .dot { fill: var(--accent); }
 .video-link:hover { border-color: var(--accent); }
+
+/* Account */
+.avatar { width: 44px; height: 44px; border-radius: 50%; flex: none; border: 1px solid var(--frame); }
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  background: #fff;
+  color: #1f1f1f;
+  border: 1px solid #dadce0;
+  font-weight: 600;
+}
+.google-btn .g { width: 20px; height: 20px; }
+.google-btn:disabled { opacity: .6; cursor: default; }

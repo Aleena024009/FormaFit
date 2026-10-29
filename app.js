@@ -67,11 +67,13 @@ function setsReps(e) {
 let state = load();
 
 function save() {
+  state.updatedAt = Date.now();
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
   } catch (err) {
     toast('Could not save. Storage may be full.');
   }
+  window.dispatchEvent(new Event('formafit:saved')); // sync.js uploads on this
 }
 
 /* ---------- Helpers ---------- */
@@ -1025,8 +1027,9 @@ function profileForm(onboarding) {
     <section class="card">
       <h2>Welcome to FormaFit</h2>
       <p class="muted" style="margin:0">Two quick steps: a few numbers about you, then pick a workout. Your calorie, protein and water targets are worked out for you. You can change anything later.</p>
-      <p class="hint">Everything stays on this device. Nothing is uploaded.</p>
     </section>` : ''}
+
+    <div id="account-slot" data-onboarding="${onboarding ? 1 : 0}">${accountHtml(onboarding)}</div>
 
     <form id="profile-form" style="display:grid;gap:14px" autocomplete="off">
       <section class="card">
@@ -1146,6 +1149,71 @@ function bindProfileForm(onboarding) {
   if (file) file.addEventListener('change', importBackup);
   if (onboarding) bindProgramPicker($('#onboard-program'));
 }
+
+/* ---------- Account ---------- */
+
+const GOOGLE_G = `<svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.5 5.8c4.4-4 6.8-10 6.8-17.2z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.3.8-4.7l-7.8-6.1C1 16.5 0 20.1 0 24s1 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>`;
+
+function accountHtml(onboarding) {
+  const c = window.cloud;
+  const status = c?.status ?? 'loading';
+  if (status === 'off') {
+    return onboarding ? '' : `
+      <section class="card">
+        <h2>Account</h2>
+        <p class="muted small" style="margin:0">Google sign-in is not switched on yet. Your data is saved on this device only.</p>
+      </section>`;
+  }
+  if (status === 'signed-in' || status === 'syncing') {
+    const u = c.user || {};
+    const when = c.lastSync ? new Date(c.lastSync).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+    return `
+      <section class="card">
+        <div class="row">
+          ${u.photo ? `<img class="avatar" src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer">` : ''}
+          <div class="grow">
+            <strong>${esc(u.name || 'Signed in')}</strong>
+            <div class="muted small">${esc(u.email || '')}</div>
+          </div>
+          ${onboarding ? '' : '<button class="ghost" data-act="sign-out">Sign out</button>'}
+        </div>
+        <div class="muted small">${status === 'syncing' ? 'Syncing…' : `✓ Synced across your devices${when ? ` · ${when}` : ''}`}</div>
+      </section>`;
+  }
+  const busy = status === 'loading';
+  const offline = status === 'offline';
+  return `
+    <section class="card">
+      <h2>${onboarding ? 'Used FormaFit before?' : 'Account'}</h2>
+      <p class="muted small" style="margin:0">${onboarding
+        ? 'Sign in to get your data from your other phone or laptop. New here? Sign in now so everything is backed up.'
+        : 'Sign in to back up your data and use FormaFit on all your devices.'}</p>
+      ${offline ? '<p class="muted small" style="margin:0">Can\'t reach the sync service right now. Your data is safe on this device.</p>' : ''}
+      <button class="google-btn" data-act="sign-in" ${busy || offline ? 'disabled' : ''}>${GOOGLE_G}${busy ? 'Connecting…' : 'Sign in with Google'}</button>
+    </section>`;
+}
+
+window.addEventListener('formafit:auth', () => {
+  const slot = $('#account-slot');
+  if (slot) slot.innerHTML = accountHtml(slot.dataset.onboarding === '1');
+});
+
+// Used by sync.js.
+window.FormaFit = {
+  getState: () => state,
+  replaceState(data) {
+    state = normalize(data);
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    } catch (err) {
+      toast('Could not save. Storage may be full.');
+    }
+    closeSheet();
+    if (!location.hash || location.hash === '#') location.hash = '#today';
+    route();
+  },
+  toast
+};
 
 function renderProfile() {
   $('#view').innerHTML = profileForm(false);
@@ -1287,10 +1355,20 @@ document.addEventListener('click', (e) => {
     case 'import':
       $('#import-file').click();
       break;
+    case 'sign-in':
+      window.cloud?.signIn();
+      break;
+    case 'sign-out':
+      if (confirm('Sign out? Your data stays on this device.')) window.cloud?.signOut();
+      break;
     case 'reset':
-      if (!confirm('Delete all FormaFit data on this device? Export a backup first if you want to keep it.')) return;
+      if (!confirm(window.cloud?.status === 'signed-in'
+        ? 'Delete all FormaFit data on this device and sign out? Your data stays in your Google account and comes back when you sign in again.'
+        : 'Delete all FormaFit data on this device? Export a backup first if you want to keep it.')) return;
       localStorage.removeItem(STORE_KEY);
       state = emptyState();
+      // Sign out too, or the live sync would bring the data straight back.
+      if (window.cloud?.status === 'signed-in') window.cloud.signOut();
       viewDate = dateKey();
       location.hash = '';
       route();
