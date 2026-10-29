@@ -215,6 +215,25 @@ function greeting() {
 
 window.addEventListener('hashchange', route);
 
+/* ---------- Sheet ---------- */
+
+// One pop-up sheet for every form, so screens only show summaries.
+function openSheet(title, html, bind) {
+  const sheet = $('#sheet');
+  sheet.innerHTML = `
+    <div class="row between">
+      <h2 id="sheet-title">${title}</h2>
+      <button class="icon" data-act="close-sheet" aria-label="Close">✕</button>
+    </div>
+    ${html}`;
+  if (!sheet.open) sheet.showModal();
+  if (bind) bind(sheet);
+}
+
+function closeSheet() {
+  if ($('#sheet').open) $('#sheet').close();
+}
+
 /* ---------- Today ---------- */
 
 function renderToday() {
@@ -224,147 +243,120 @@ function renderToday() {
   const protein = d.foods.reduce((s, f) => s + (f.protein || 0), 0);
   const isToday = viewDate === dateKey();
   const plan = state.plan[parseKey(viewDate).getDay()];
-
-  const circ = 2 * Math.PI * 50;
-  const pct = Math.min(kcal / t.kcal, 1);
   const remaining = t.kcal - kcal;
 
-  const knownFoods = foodHistory();
+  const goalRow = (label, value, target, unit, pct, note) => `
+    <div class="goal">
+      <div class="row between">
+        <span>${label}</span>
+        <span><strong>${value}</strong> <span class="muted">/ ${target} ${unit}</span></span>
+      </div>
+      <div class="bar"><span class="${pct > 1 ? 'over' : ''}" style="width:${Math.min(pct, 1) * 100}%"></span></div>
+      ${note ? `<div class="muted small">${note}</div>` : ''}
+    </div>`;
+
+  let workout;
+  if (plan.exercises.length) {
+    const total = plan.exercises.reduce((s, e) => s + (e.sets || 1), 0);
+    workout = `
+      <div class="row between">
+        <div>
+          <h2>${esc(plan.focus || 'Workout')}${plan.focus && !/day$/i.test(plan.focus) ? ' day' : ''}</h2>
+          <div class="muted small">${plan.exercises.length} exercises · ${total} sets</div>
+        </div>
+        ${d.workoutDone ? '<span class="pill ok">Done ✓</span>' : ''}
+      </div>
+      ${isToday ? `<a class="button" href="#workout">${d.workoutDone ? 'View workout' : 'Start workout'}</a>` : ''}`;
+  } else if (plan.focus) {
+    workout = '<h2>Rest day</h2><p class="muted small" style="margin:0">A light walk or stretching is enough today.</p>';
+  } else {
+    workout = '<h2>No workout yet</h2><a class="button" href="#workout">Choose a workout</a>';
+  }
 
   $('#view').innerHTML = `
+    <div class="daynav">
+      <button class="icon" data-act="prev-day" aria-label="Previous day">◀</button>
+      <strong>${isToday ? 'Today' : prettyDate(viewDate)}</strong>
+      <button class="icon" data-act="next-day" aria-label="Next day" ${isToday ? 'disabled' : ''}>▶</button>
+    </div>
+
     <section class="card">
-      <div class="daynav">
-        <button class="icon" data-act="prev-day" aria-label="Previous day">◀</button>
-        <strong>${isToday ? 'Today' : prettyDate(viewDate)}</strong>
-        <button class="icon" data-act="next-day" aria-label="Next day" ${isToday ? 'disabled' : ''}>▶</button>
+      ${goalRow('Calories', kcal, t.kcal, 'kcal', kcal / t.kcal, remaining >= 0 ? `${remaining} kcal left` : `${-remaining} kcal over`)}
+      ${goalRow('Protein', fmt(protein), t.protein, 'g', protein / t.protein)}
+      ${goalRow('Water', (d.water / 1000).toFixed(2).replace(/0$/, ''), (t.water / 1000).toFixed(1), 'L', d.water / t.water)}
+    </section>
+
+    <div class="actions">
+      <button class="big-btn" data-act="add-food"><span>＋</span>Add food</button>
+      <button class="big-btn" data-act="water" data-ml="${state.profile.glassMl}"><span>＋</span>Glass of water</button>
+    </div>
+
+    <section class="card">${workout}</section>
+
+    <section class="card">
+      <div class="row between">
+        <h2>Food</h2>
+        ${d.water ? `<button class="icon small" data-act="water" data-ml="-${state.profile.glassMl}">Undo a glass</button>` : ''}
       </div>
-      <div class="ring-wrap">
-        <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="${kcal} of ${t.kcal} kcal">
-          <circle class="track" cx="60" cy="60" r="50"/>
-          <circle class="fill ${kcal > t.kcal ? 'over' : ''}" cx="60" cy="60" r="50"
-            stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - pct)}"/>
-          <text x="60" y="60">${kcal}</text>
-          <text x="60" y="78" class="sub">of ${t.kcal} kcal</text>
-        </svg>
-        <div class="grow">
-          <div class="muted small">${remaining >= 0 ? 'Remaining' : 'Over target'}</div>
-          <div class="big">${Math.abs(remaining)} kcal</div>
-          <div class="muted small" style="margin-top:10px">Protein ${fmt(protein)} / ${t.protein} g</div>
-          <div class="bar"><span style="width:${Math.min((protein / t.protein) * 100, 100)}%"></span></div>
+      ${d.foods.length
+        ? `<ul class="list">${d.foods.map((f) => `
+            <li>
+              <span class="grow">${esc(f.name)}</span>
+              <span class="muted small">${f.kcal} kcal${f.protein ? ` · ${fmt(f.protein, 1)} g` : ''}</span>
+              <button class="icon" data-act="del-food" data-id="${f.id}" aria-label="Remove ${esc(f.name)}">✕</button>
+            </li>`).join('')}</ul>`
+        : '<p class="empty">Nothing yet. Tap <strong>Add food</strong> after you eat.</p>'}
+    </section>
+
+    <section class="card">
+      <div class="row between">
+        <div>
+          <h2>Sleep</h2>
+          <div class="muted small">Last night${state.profile.sleepGoal ? ` · goal ${state.profile.sleepGoal} h` : ''}</div>
+        </div>
+        <div class="stepper">
+          <button class="ghost" data-act="sleep" data-step="-0.5" aria-label="Less sleep">−</button>
+          <strong>${d.sleep == null ? '–' : `${fmt(d.sleep, 1)} h`}</strong>
+          <button class="ghost" data-act="sleep" data-step="0.5" aria-label="More sleep">＋</button>
         </div>
       </div>
     </section>
-
-    <section class="card">
-      <div class="row between">
-        <h2>Water</h2>
-        <span class="muted">${(d.water / 1000).toFixed(2)} / ${(t.water / 1000).toFixed(1)} L</span>
-      </div>
-      <div class="bar"><span style="width:${Math.min((d.water / t.water) * 100, 100)}%"></span></div>
-      <div class="row">
-        <button class="ghost grow" data-act="water" data-ml="-${state.profile.glassMl}">− ${state.profile.glassMl} ml</button>
-        <button class="grow" data-act="water" data-ml="${state.profile.glassMl}">+ ${state.profile.glassMl} ml</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Log food</h2>
-      <form id="food-form" class="grid-2" autocomplete="off">
-        <label style="grid-column:1/-1">Food
-          <input name="name" list="food-list" required placeholder="What did you eat?">
-        </label>
-        <datalist id="food-list">
-          ${knownFoods.map((f) => `<option value="${esc(f.name)}">`).join('')}
-        </datalist>
-        <label>Calories (kcal)<input name="kcal" type="number" inputmode="numeric" min="0" step="1" required></label>
-        <label>Protein (g)<input name="protein" type="number" inputmode="decimal" min="0" step="0.1"></label>
-        <label>Meal
-          <select name="meal">${MEALS.map((m) => `<option ${m === suggestMeal() ? 'selected' : ''}>${m}</option>`).join('')}</select>
-        </label>
-        <button type="submit" style="align-self:end">Add</button>
-      </form>
-      ${MEALS.map((m) => mealList(m, d.foods.filter((f) => f.meal === m))).join('')}
-      ${d.foods.length ? '' : '<p class="empty">Nothing logged yet. Foods you add are remembered so you can re-add them quickly.</p>'}
-    </section>
-
-    <section class="card">
-      <div class="row between">
-        <h2>Workout</h2>
-        ${plan.focus ? `<span class="pill">${esc(plan.focus)}</span>` : ''}
-      </div>
-      ${plan.exercises.length
-        ? `<ul class="list">${plan.exercises.map((e) => `
-            <li>
-              ${exerciseButton(e.name, setsReps(e))}
-              <span class="muted small">${setsReps(e)}</span>
-              <button class="icon" data-act="log-ex" data-name="${esc(e.name)}" aria-label="Log a set of ${esc(e.name)}">Log</button>
-            </li>`).join('')}</ul>`
-        : plan.focus
-          ? '<p class="empty">Rest day. A light walk or stretching is enough.</p>'
-          : `<p class="empty">No plan for ${DAYS[parseKey(viewDate).getDay()]}. <a href="#workout">Pick a program or set up your weekly plan</a>.</p>`}
-      <button class="${d.workoutDone ? '' : 'ghost'}" data-act="toggle-workout">
-        ${d.workoutDone ? '✓ Workout done' : 'Mark workout done'}
-      </button>
-    </section>
-
-    <section class="card">
-      <h2>Sleep</h2>
-      <form id="sleep-form" class="row">
-        <label class="grow">Hours slept
-          <input name="sleep" type="number" inputmode="decimal" min="0" max="24" step="0.25" value="${d.sleep ?? ''}">
-        </label>
-        <button type="submit" style="align-self:end">Save</button>
-      </form>
-      ${state.profile.sleepGoal ? `<p class="muted small" style="margin:0">Goal: ${state.profile.sleepGoal} h</p>` : ''}
-    </section>
   `;
-
-  const foodForm = $('#food-form');
-  foodForm.name.addEventListener('change', () => {
-    const match = knownFoods.find((f) => f.name.toLowerCase() === foodForm.name.value.trim().toLowerCase());
-    if (match) {
-      foodForm.kcal.value = match.kcal;
-      foodForm.protein.value = match.protein || '';
-    }
-  });
-  foodForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const f = formData(foodForm);
-    day(viewDate).foods.push({
-      id: uid(),
-      name: f.name.trim(),
-      meal: f.meal,
-      kcal: Math.round(num(f.kcal) || 0),
-      protein: num(f.protein) || 0
-    });
-    save();
-    toast('Food added');
-    renderToday();
-  });
-
-  $('#sleep-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    day(viewDate).sleep = num(e.target.sleep.value);
-    save();
-    toast('Sleep saved');
-  });
 }
 
-function mealList(meal, foods) {
-  if (!foods.length) return '';
-  const kcal = foods.reduce((s, f) => s + f.kcal, 0);
-  return `
-    <div>
-      <div class="row between"><h3>${meal}</h3><span class="muted small">${kcal} kcal</span></div>
-      <ul class="list" style="margin-top:6px">
-        ${foods.map((f) => `
-          <li>
-            <span class="grow">${esc(f.name)}</span>
-            <span class="muted small">${f.kcal} kcal · ${fmt(f.protein, 1)} g</span>
-            <button class="icon" data-act="del-food" data-id="${f.id}" aria-label="Remove ${esc(f.name)}">✕</button>
-          </li>`).join('')}
-      </ul>
-    </div>`;
+function openFoodSheet() {
+  const recent = foodHistory().slice(0, 8);
+  openSheet('Add food', `
+    ${recent.length ? `
+      <div>
+        <div class="muted small" style="margin-bottom:6px">Tap to add again</div>
+        <div class="chips">
+          ${recent.map((f, i) => `<button type="button" class="chip" data-recent="${i}">${esc(f.name)} <span class="muted">${f.kcal}</span></button>`).join('')}
+        </div>
+      </div>` : ''}
+    <form id="food-form" style="display:grid;gap:10px" autocomplete="off">
+      <label>What did you eat?<input name="name" required placeholder="e.g. 2 chapati with dal"></label>
+      <div class="grid-2">
+        <label>Calories<input name="kcal" type="number" inputmode="numeric" min="0" step="1" required placeholder="kcal"></label>
+        <label>Protein (optional)<input name="protein" type="number" inputmode="decimal" min="0" step="0.1" placeholder="grams"></label>
+      </div>
+      <button type="submit">Add</button>
+    </form>`, (sheet) => {
+    const addFood = (f) => {
+      day(viewDate).foods.push({ id: uid(), name: f.name, meal: suggestMeal(), kcal: f.kcal, protein: f.protein });
+      save();
+      closeSheet();
+      toast(`Added ${f.name}`);
+      renderToday();
+    };
+    sheet.querySelectorAll('[data-recent]').forEach((b) => b.addEventListener('click', () => addFood(recent[b.dataset.recent])));
+    const form = $('#food-form', sheet);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = formData(form);
+      addFood({ name: f.name.trim(), kcal: Math.round(num(f.kcal) || 0), protein: num(f.protein) || 0 });
+    });
+  });
 }
 
 function suggestMeal() {
@@ -389,145 +381,186 @@ function foodHistory() {
 
 /* ---------- Workout ---------- */
 
-let pendingExercise = null;
+const hasPlan = () => state.plan.some((p) => p.focus || p.exercises.length);
+
+// First number in a reps target like "8-10"; null for "Failure".
+const targetReps = (reps) => parseInt(reps, 10) || null;
+
+function setsToday(name) {
+  return state.sets.filter((s) => s.date === dateKey() && s.exercise === name);
+}
+
+function lastWeight(name) {
+  const done = state.sets.filter((s) => s.exercise === name && s.weight != null).sort((a, b) => b.ts - a.ts);
+  return done.length ? done[0].weight : '';
+}
 
 function renderWorkout() {
-  const todayIdx = new Date().getDay();
-  const exercises = new Set([...state.plan.flatMap((p) => p.exercises.map((e) => e.name)), ...state.sets.map((s) => s.exercise)]);
-  const byDate = groupBy([...state.sets].sort((a, b) => b.date.localeCompare(a.date) || b.ts - a.ts), (s) => s.date);
-  const prs = personalBests();
-  const hasPlan = state.plan.some((p) => p.focus || p.exercises.length);
+  if (!hasPlan()) {
+    $('#view').innerHTML = `
+      <section class="card">
+        <h2>Choose your workout</h2>
+        <p class="muted small" style="margin:0">Tap a program. Your whole week is planned for you.</p>
+        ${programFormHtml()}
+      </section>`;
+    bindProgramForm($('#view'));
+    return;
+  }
 
+  const todayIdx = new Date().getDay();
+  const plan = state.plan[todayIdx];
   const current = PROGRAMS.find((p) => p.id === state.programId);
-  const programForm = `
-    <form id="program-form" style="display:grid;gap:12px">
-      ${programPicker(state.programId, state.scheduleId)}
-      <button type="submit">${hasPlan ? 'Switch to this program' : 'Start this program'}</button>
-      ${hasPlan ? '<p class="muted small" style="margin:0">This replaces your weekly plan. Your logged sets are kept.</p>' : ''}
-    </form>`;
+  const total = plan.exercises.reduce((s, e) => s + (e.sets || 1), 0);
+  const done = plan.exercises.reduce((s, e) => s + Math.min(setsToday(e.name).length, e.sets || 1), 0);
+
+  let body;
+  if (!plan.exercises.length) {
+    const next = [1, 2, 3, 4, 5, 6].map((i) => (todayIdx + i) % 7).find((i) => state.plan[i].exercises.length);
+    body = `
+      <section class="card">
+        <h2>Rest day</h2>
+        <p class="muted small" style="margin:0">Your muscles grow while you rest. A light walk is enough.</p>
+        ${next != null ? `<p class="small" style="margin:0">Next workout: <strong>${DAYS[next]} · ${esc(state.plan[next].focus)}</strong></p>` : ''}
+      </section>`;
+  } else {
+    body = `
+      ${done >= total ? '<section class="card done-banner"><h2>Workout complete ✓</h2><p class="muted small" style="margin:0">Great job. Drink water and eat some protein.</p></section>' : ''}
+      ${plan.exercises.map((e, i) => {
+        const count = setsToday(e.name).length;
+        const sets = e.sets || 1;
+        return `
+          <section class="card exercise ${count >= sets ? 'complete' : ''}">
+            <div class="row between">
+              ${exerciseButton(e.name, setsReps(e))}
+              <span class="muted small">${e.sets ? `${e.sets} sets × ${esc(e.reps)}` : ''}</span>
+            </div>
+            <div class="row">
+              <label class="weight">
+                <input type="number" inputmode="decimal" min="0" step="0.5" data-weight="${i}" value="${lastWeight(e.name)}" placeholder="0" aria-label="Weight for ${esc(e.name)} in kg">
+                <span>kg</span>
+              </label>
+              <div class="bubbles" role="group" aria-label="Sets">
+                ${Array.from({ length: sets }, (_, n) => `
+                  <button class="bubble ${n < count ? 'on' : ''}" data-act="set" data-ex="${i}" data-n="${n}"
+                    aria-label="Set ${n + 1} ${n < count ? 'done, tap to undo' : ''}">${n < count ? '✓' : n + 1}</button>`).join('')}
+              </div>
+            </div>
+          </section>`;
+      }).join('')}
+      <p class="muted small center">Tap a number when you finish that set. Tap ▶ to see how.</p>`;
+  }
 
   $('#view').innerHTML = `
-    ${hasPlan ? `
     <section class="card">
-      <div class="row between">
-        <div>
-          <div class="muted small">Your program</div>
-          <h2>${current ? current.name : 'Custom plan'}</h2>
-          ${current && state.scheduleId ? `<div class="muted small">${SCHEDULES[state.scheduleId].label} · ${SCHEDULES[state.scheduleId].detail}</div>` : ''}
-        </div>
-      </div>
-      <details>
-        <summary class="muted small">Change program</summary>
-        ${programForm}
-      </details>
-    </section>` : `
-    <section class="card">
-      <h2>Choose your workout</h2>
-      <p class="muted small" style="margin:0">Tap a program. Your whole week is filled in for you, with sets and reps for every exercise. You can change anything later.</p>
-      ${programForm}
-    </section>`}
-
-    <section class="card">
-      <h2>Log a set</h2>
-      <form id="set-form" class="grid-2" autocomplete="off">
-        <label style="grid-column:1/-1">Exercise
-          <input name="exercise" list="ex-list" required placeholder="e.g. Squat">
-        </label>
-        <datalist id="ex-list">${[...exercises].map((e) => `<option value="${esc(e)}">`).join('')}</datalist>
-        <label>Weight (kg)<input name="weight" type="number" inputmode="decimal" min="0" step="0.5"></label>
-        <label>Reps<input name="reps" type="number" inputmode="numeric" min="1" step="1" required></label>
-        <label>Date<input name="date" type="date" value="${dateKey()}" max="${dateKey()}" required></label>
-        <button type="submit" style="align-self:end">Add set</button>
-      </form>
+      <div class="muted small">${DAYS[todayIdx]} · ${current ? current.name : 'My plan'}</div>
+      <h2 class="title">${plan.exercises.length ? `${esc(plan.focus || 'Workout')}${plan.focus && !/day$/i.test(plan.focus) ? ' day' : ''}` : 'Rest day'}</h2>
+      ${plan.exercises.length ? `
+        <div class="bar"><span style="width:${(done / total) * 100}%"></span></div>
+        <div class="muted small">${done} of ${total} sets done</div>` : ''}
     </section>
 
-    <section class="card">
-      <h2>${hasPlan ? 'Weekly plan' : 'Or build your own plan'}</h2>
-      <p class="muted small" style="margin:0">Tap a day to edit it. One exercise per line, like <em>Bench Press, 3 x 8-10</em>. Leave a day empty to rest.</p>
-      ${state.plan.map((p, i) => `
-        <details ${i === todayIdx ? 'open' : ''}>
-          <summary>${DAYS[i]}${i === todayIdx ? ' · today' : ''} <span class="muted small" style="font-weight:400">${esc(p.focus)}</span></summary>
-          <form class="plan-form" data-day="${i}" style="display:grid;gap:10px">
-            <label>Focus<input name="focus" value="${esc(p.focus)}" placeholder="e.g. Push, Rest"></label>
-            <label>Exercises<textarea name="exercises" rows="${Math.max(4, p.exercises.length + 1)}" placeholder="One per line">${esc(p.exercises.map(exerciseLine).join('\n'))}</textarea></label>
-            <button type="submit" class="ghost">Save ${DAYS[i]}</button>
-          </form>
-        </details>`).join('')}
-    </section>
+    ${body}
 
-    <section class="card">
-      <details>
-        <summary>Training tips</summary>
-        <ul class="list">${TRAINING_TIPS.map((t) => `<li>${t}</li>`).join('')}</ul>
-        <h3 style="margin-top:12px">Best rep ranges</h3>
-        <ul class="list" style="margin-top:6px">${REP_RANGES.map(([goal, reps]) => `<li><span class="grow">${goal}</span><span class="muted small">${reps}</span></li>`).join('')}</ul>
-      </details>
-    </section>
-
-    ${prs.length ? `
-    <section class="card">
-      <h2>Personal bests</h2>
-      <ul class="list">
-        ${prs.map((p) => `<li><span class="grow">${esc(p.exercise)}</span><span class="muted small">${fmt(p.weight, 1)} kg × ${p.reps}</span></li>`).join('')}
-      </ul>
-    </section>` : ''}
-
-    <section class="card">
-      <h2>History</h2>
-      ${Object.keys(byDate).length ? Object.entries(byDate).slice(0, 14).map(([date, sets]) => `
-        <div>
-          <h3>${prettyDate(date)}</h3>
-          <ul class="list" style="margin-top:6px">
-            ${sets.map((s) => `
-              <li>
-                <span class="grow">${esc(s.exercise)}</span>
-                <span class="muted small">${s.weight != null ? fmt(s.weight, 1) + ' kg × ' : ''}${s.reps}</span>
-                <button class="icon" data-act="del-set" data-id="${s.id}" aria-label="Remove set">✕</button>
-              </li>`).join('')}
-          </ul>
-        </div>`).join('') : '<p class="empty">No sets logged yet.</p>'}
-    </section>
+    <div class="actions">
+      <button class="ghost" data-act="sheet-program">Change program</button>
+      <button class="ghost" data-act="sheet-plan">Edit my week</button>
+      <button class="ghost" data-act="sheet-history">History</button>
+      <button class="ghost" data-act="sheet-tips">Tips</button>
+    </div>
   `;
+}
 
-  $('#set-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const f = formData(e.target);
-    state.sets.push({ id: uid(), ts: Date.now(), date: f.date, exercise: f.exercise.trim(), weight: num(f.weight), reps: parseInt(f.reps, 10) });
-    save();
-    toast('Set logged');
-    const keepExercise = f.exercise;
-    renderWorkout();
-    $('#set-form').exercise.value = keepExercise;
-    $('#set-form').weight.value = f.weight;
-  });
+function toggleSet(i, n) {
+  const e = state.plan[new Date().getDay()].exercises[i];
+  const logged = setsToday(e.name);
+  if (n < logged.length) {
+    // Undo the most recent set of this exercise.
+    const last = logged.sort((a, b) => b.ts - a.ts)[0];
+    state.sets = state.sets.filter((s) => s.id !== last.id);
+  } else {
+    const weight = num($(`[data-weight="${i}"]`).value);
+    state.sets.push({ id: uid(), ts: Date.now(), date: dateKey(), exercise: e.name, weight, reps: targetReps(e.reps) });
+  }
+  const plan = state.plan[new Date().getDay()];
+  const finished = plan.exercises.every((x) => setsToday(x.name).length >= (x.sets || 1));
+  const d = day(dateKey());
+  if (finished && !d.workoutDone) toast('Workout complete! 💪');
+  d.workoutDone = finished;
+  save();
+  renderWorkout();
+}
 
-  $$('.plan-form').forEach((form) => form.addEventListener('submit', (e) => {
+function programFormHtml() {
+  return `
+    <form id="program-form" style="display:grid;gap:12px">
+      ${programPicker(state.programId, state.scheduleId)}
+      <button type="submit">${hasPlan() ? 'Switch to this program' : 'Start this program'}</button>
+    </form>`;
+}
+
+function bindProgramForm(root) {
+  const form = $('#program-form', root);
+  bindProgramPicker(form);
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     const f = formData(form);
-    state.plan[Number(form.dataset.day)] = {
-      focus: f.focus.trim(),
-      exercises: f.exercises.split('\n').map((s) => s.trim()).filter(Boolean).map(parseExercise)
-    };
-    save();
-    toast(`${DAYS[form.dataset.day]} saved`);
-    renderWorkout();
-  }));
-
-  bindProgramPicker($('#program-form'));
-  $('#program-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const f = formData(e.target);
-    if (hasPlan && !confirm('Replace your weekly plan with this program?')) return;
+    if (hasPlan() && state.programId && !confirm('Switch program? Your past sets are kept.')) return;
     applyProgram(f.program, f.schedule);
+    closeSheet();
     toast('Your week is ready');
     renderWorkout();
   });
+}
 
-  if (pendingExercise) {
-    $('#set-form').exercise.value = pendingExercise;
-    $('#set-form').weight.focus();
-    pendingExercise = null;
-  }
+function openPlanSheet() {
+  const todayIdx = new Date().getDay();
+  openSheet('Edit my week', `
+    <p class="muted small" style="margin:0">One exercise per line, like <em>Bench Press, 3 x 8-10</em>. Leave a day empty to rest.</p>
+    ${state.plan.map((p, i) => `
+      <details ${i === todayIdx ? 'open' : ''}>
+        <summary>${DAYS[i]} <span class="muted small" style="font-weight:400">${esc(p.focus || 'Rest')}</span></summary>
+        <form class="plan-form" data-day="${i}" style="display:grid;gap:10px">
+          <label>Name of the day<input name="focus" value="${esc(p.focus)}" placeholder="e.g. Push, Rest"></label>
+          <label>Exercises<textarea name="exercises" rows="${Math.max(4, p.exercises.length + 1)}" placeholder="One per line">${esc(p.exercises.map(exerciseLine).join('\n'))}</textarea></label>
+          <button type="submit" class="ghost">Save ${DAYS[i]}</button>
+        </form>
+      </details>`).join('')}`, (sheet) => {
+    sheet.querySelectorAll('.plan-form').forEach((form) => form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = formData(form);
+      state.plan[Number(form.dataset.day)] = {
+        focus: f.focus.trim(),
+        exercises: f.exercises.split('\n').map((s) => s.trim()).filter(Boolean).map(parseExercise)
+      };
+      save();
+      toast(`${DAYS[form.dataset.day]} saved`);
+      renderWorkout();
+    }));
+  });
+}
+
+function openHistorySheet() {
+  const byDate = groupBy([...state.sets].sort((a, b) => b.date.localeCompare(a.date) || b.ts - a.ts), (s) => s.date);
+  const prs = personalBests();
+  openSheet('History', `
+    ${prs.length ? `
+      <h3>Best lifts</h3>
+      <ul class="list">${prs.map((p) => `<li><span class="grow">${esc(p.exercise)}</span><span class="muted small">${fmt(p.weight, 1)} kg × ${p.reps ?? '–'}</span></li>`).join('')}</ul>` : ''}
+    ${Object.keys(byDate).length ? Object.entries(byDate).slice(0, 14).map(([date, sets]) => `
+      <h3>${prettyDate(date)}</h3>
+      <ul class="list">${sets.map((s) => `
+        <li>
+          <span class="grow">${esc(s.exercise)}</span>
+          <span class="muted small">${s.weight != null ? `${fmt(s.weight, 1)} kg` : ''}${s.reps ? ` × ${s.reps}` : ''}</span>
+          <button class="icon" data-act="del-set" data-id="${s.id}" aria-label="Remove set">✕</button>
+        </li>`).join('')}</ul>`).join('') : '<p class="empty">No workouts logged yet.</p>'}`);
+}
+
+function openTipsSheet() {
+  openSheet('Training tips', `
+    <ul class="list">${TRAINING_TIPS.map((t) => `<li>${t}</li>`).join('')}</ul>
+    <h3>Best rep ranges</h3>
+    <ul class="list">${REP_RANGES.map(([goal, reps]) => `<li><span class="grow">${goal}</span><span class="muted small">${reps}</span></li>`).join('')}</ul>`);
 }
 
 const PPL_LABELS = { push: 'Push', pull: 'Pull', legs: 'Legs' };
@@ -621,13 +654,9 @@ function exerciseButton(name, detail = '') {
 
 function showDemo(name, detail) {
   const demo = demoFor(name);
-  const video = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} exercise proper form`)}`;
-  const dialog = $('#demo');
-  dialog.innerHTML = `
-    <div class="row between">
-      <h2 id="demo-title">${esc(name)}</h2>
-      <button class="icon" data-act="close-demo" aria-label="Close">✕</button>
-    </div>
+  const reels = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(`${name} form`)}`;
+  const youtube = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} exercise proper form`)}`;
+  openSheet(esc(name), `
     ${detail ? `<span class="pill">${esc(detail)}</span>` : ''}
     ${demo ? `
       <div class="demo-anim" role="img" aria-label="${esc(name)}: start and end position">
@@ -635,12 +664,9 @@ function showDemo(name, detail) {
         <img src="demos/${demo.id}/1.jpg" alt="" class="end">
       </div>
       <ol class="steps">${demo.steps.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>`
-    : '<p class="empty">No demo photos for this exercise yet. Watch a video below.</p>'}
-    <div class="row">
-      <a class="button ghost grow" href="${video}" target="_blank" rel="noopener">▶ Watch video</a>
-      <button class="grow" data-act="log-ex" data-name="${esc(name)}">Log a set</button>
-    </div>`;
-  dialog.showModal();
+    : '<p class="empty">No photos for this exercise yet. Watch a video instead.</p>'}
+    <a class="button" href="${reels}" target="_blank" rel="noopener">▶ Watch reels on Instagram</a>
+    <a class="muted small center" href="${youtube}" target="_blank" rel="noopener">or watch on YouTube</a>`);
 }
 
 /* ---------- Progress ---------- */
@@ -658,79 +684,87 @@ let chartKey = 'weight';
 function renderProgress() {
   const t = calc();
   const list = [...state.measurements].sort((a, b) => b.date.localeCompare(a.date));
+  // Only offer chart tabs for measurements that have been logged.
+  const tabs = MEASURES.filter((m) => list.some((x) => x[m.key] != null));
+  if (!tabs.some((m) => m.key === chartKey)) chartKey = 'weight';
   const series = [...list].reverse().filter((m) => m[chartKey] != null);
   const unit = MEASURES.find((m) => m.key === chartKey).unit;
-  const change = series.length > 1 ? series[series.length - 1][chartKey] - series[0][chartKey] : null;
-  const sleepAvg = averageSleep(7);
+  const weights = [...list].reverse().filter((m) => m.weight != null);
+  const change = weights.length > 1 ? weights[weights.length - 1].weight - weights[0].weight : null;
   const workouts = Object.entries(state.days).filter(([k, d]) => d.workoutDone && k > shiftKey(dateKey(), -7)).length;
+  const target = state.profile.targetWeight;
+
+  const tile = (label, value, note) => `
+    <div class="tile"><div class="muted small">${label}</div><div class="big">${value}</div><div class="muted small">${note}</div></div>`;
 
   $('#view').innerHTML = `
-    <section class="card">
-      <h2>Overview</h2>
-      <div class="grid-3">
-        <div><div class="muted small">Weight</div><div class="big">${fmt(t.weight, 1)}</div><div class="muted small">kg</div></div>
-        <div><div class="muted small">BMI</div><div class="big">${fmt(t.bmi, 1)}</div><div class="muted small">${t.bmiCat}</div></div>
-        <div><div class="muted small">Healthy range</div><div class="big" style="font-size:1.1rem">${fmt(t.healthyMin)}–${fmt(t.healthyMax)}</div><div class="muted small">kg at your height</div></div>
-        <div><div class="muted small">Workouts</div><div class="big">${workouts}</div><div class="muted small">last 7 days</div></div>
-        <div><div class="muted small">Avg sleep</div><div class="big">${sleepAvg == null ? '–' : fmt(sleepAvg, 1)}</div><div class="muted small">h, last 7 days</div></div>
-        ${state.profile.targetWeight ? `<div><div class="muted small">To target</div><div class="big">${fmt(Math.abs(t.weight - state.profile.targetWeight), 1)}</div><div class="muted small">kg to ${fmt(state.profile.targetWeight, 1)}</div></div>` : ''}
-      </div>
-    </section>
+    <div class="tiles">
+      ${tile('Weight', `${fmt(t.weight, 1)} kg`, target ? `Goal ${fmt(target, 1)} kg` : 'Latest')}
+      ${tile('Change', change == null ? '–' : `${change > 0 ? '+' : ''}${fmt(change, 1)} kg`, 'Since you started')}
+      ${tile('BMI', fmt(t.bmi, 1), t.bmiCat)}
+      ${tile('Workouts', workouts, 'In the last 7 days')}
+    </div>
+
+    <button class="big-btn wide" data-act="add-measure"><span>＋</span>Log weight</button>
 
     <section class="card">
       <div class="row between">
-        <h2>Trend</h2>
-        ${change != null ? `<span class="pill">${change > 0 ? '+' : ''}${fmt(change, 1)} ${unit}</span>` : ''}
+        <h2>${MEASURES.find((m) => m.key === chartKey).label} trend</h2>
+        ${series.length > 1 ? `<span class="pill">${fmt(series[series.length - 1][chartKey] - series[0][chartKey], 1)} ${unit}</span>` : ''}
       </div>
-      <div class="chart-tabs">
-        ${MEASURES.map((m) => `<button class="${m.key === chartKey ? '' : 'ghost'}" data-act="chart" data-key="${m.key}">${m.label}</button>`).join('')}
-      </div>
-      ${series.length > 1 ? lineChart(series.map((m) => ({ x: m.date, y: m[chartKey] }))) : '<p class="empty">Add at least two entries to see a trend.</p>'}
+      ${tabs.length > 1 ? `<div class="chart-tabs">${tabs.map((m) => `<button class="${m.key === chartKey ? '' : 'ghost'}" data-act="chart" data-key="${m.key}">${m.label}</button>`).join('')}</div>` : ''}
+      ${series.length > 1 ? lineChart(series.map((m) => ({ x: m.date, y: m[chartKey] }))) : '<p class="empty">Log your weight every week or two. Your trend shows up here.</p>'}
     </section>
 
     <section class="card">
-      <h2>Add measurement</h2>
-      <form id="measure-form" class="grid-2" autocomplete="off">
-        <label style="grid-column:1/-1">Date<input name="date" type="date" value="${dateKey()}" max="${dateKey()}" required></label>
-        ${MEASURES.map((m) => `<label>${m.label} (${m.unit})<input name="${m.key}" type="number" inputmode="decimal" min="0" step="0.1"></label>`).join('')}
-        <label style="grid-column:1/-1">Note<input name="note" placeholder="Optional"></label>
-        <button type="submit" style="grid-column:1/-1">Save measurement</button>
-      </form>
-      <p class="hint">Measure your waist at the belly button, same time of day, every 1–2 weeks. Waist and photos show progress better than the scale.</p>
+      <details>
+        <summary>All entries (${list.length})</summary>
+        ${list.length ? `<ul class="list">${list.map((m) => `
+          <li>
+            <span class="grow">${prettyDate(m.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+            <span class="muted small">${MEASURES.filter((x) => m[x.key] != null).map((x) => `${x.label} ${fmt(m[x.key], 1)}`).join(' · ')}</span>
+            <button class="icon" data-act="del-measure" data-id="${m.id}" aria-label="Remove entry">✕</button>
+          </li>`).join('')}</ul>` : '<p class="empty">No entries yet.</p>'}
+      </details>
     </section>
 
-    <section class="card">
-      <h2>History</h2>
-      ${list.length ? `
-      <div class="table-scroll">
-        <table>
-          <thead><tr><th>Date</th>${MEASURES.map((m) => `<th>${m.label}</th>`).join('')}<th></th></tr></thead>
-          <tbody>
-            ${list.map((m) => `
-              <tr title="${esc(m.note)}">
-                <td>${prettyDate(m.date, { day: 'numeric', month: 'short', year: '2-digit' })}</td>
-                ${MEASURES.map((x) => `<td>${fmt(m[x.key], 1)}</td>`).join('')}
-                <td><button class="icon" data-act="del-measure" data-id="${m.id}" aria-label="Remove entry">✕</button></td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>` : '<p class="empty">No measurements yet.</p>'}
-    </section>
+    <p class="muted small center">Tip: waist size and photos show fat loss better than the scale.</p>
   `;
+}
 
-  $('#measure-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const f = formData(e.target);
-    const entry = { id: uid(), date: f.date, note: f.note.trim() };
-    MEASURES.forEach((m) => (entry[m.key] = num(f[m.key])));
-    if (MEASURES.every((m) => entry[m.key] == null)) {
-      toast('Enter at least one measurement');
-      return;
-    }
-    state.measurements.push(entry);
-    save();
-    toast('Measurement saved');
-    renderProgress();
+function openMeasureSheet() {
+  openSheet('Log weight', `
+    <form id="measure-form" style="display:grid;gap:10px" autocomplete="off">
+      <div class="grid-2">
+        <label>Weight (kg)<input name="weight" type="number" inputmode="decimal" min="0" step="0.1" placeholder="${fmt(latestWeight(), 1)}"></label>
+        <label>Waist (cm)<input name="waist" type="number" inputmode="decimal" min="0" step="0.1" placeholder="At belly button"></label>
+      </div>
+      <details>
+        <summary class="muted small">More measurements (optional)</summary>
+        <div class="grid-2">
+          ${MEASURES.filter((m) => !['weight', 'waist'].includes(m.key)).map((m) => `<label>${m.label} (${m.unit})<input name="${m.key}" type="number" inputmode="decimal" min="0" step="0.1"></label>`).join('')}
+          <label>Date<input name="date" type="date" value="${dateKey()}" max="${dateKey()}" required></label>
+          <label>Note<input name="note" placeholder="Optional"></label>
+        </div>
+      </details>
+      <button type="submit">Save</button>
+    </form>`, (sheet) => {
+    const form = $('#measure-form', sheet);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = formData(form);
+      const entry = { id: uid(), date: f.date, note: f.note.trim() };
+      MEASURES.forEach((m) => (entry[m.key] = num(f[m.key])));
+      if (MEASURES.every((m) => entry[m.key] == null)) {
+        toast('Enter your weight or a measurement');
+        return;
+      }
+      state.measurements.push(entry);
+      save();
+      closeSheet();
+      toast('Saved');
+      renderProgress();
+    });
   });
 }
 
@@ -972,22 +1006,46 @@ document.addEventListener('click', (e) => {
       renderToday();
       break;
     }
-    case 'log-ex':
-      if ($('#demo').open) $('#demo').close();
-      pendingExercise = el.dataset.name;
-      if (location.hash === '#workout') renderWorkout();
-      else location.hash = '#workout';
-      break;
     case 'demo':
       e.preventDefault();
       showDemo(el.dataset.name, el.dataset.detail);
       break;
-    case 'close-demo':
-      $('#demo').close();
+    case 'close-sheet':
+      closeSheet();
+      break;
+    case 'add-food':
+      openFoodSheet();
+      break;
+    case 'add-measure':
+      openMeasureSheet();
+      break;
+    case 'sleep': {
+      const d = day(viewDate);
+      const start = d.sleep ?? state.profile.sleepGoal ?? 7;
+      d.sleep = Math.min(14, Math.max(0, d.sleep == null ? start : start + Number(el.dataset.step)));
+      save();
+      renderToday();
+      break;
+    }
+    case 'set':
+      toggleSet(Number(el.dataset.ex), Number(el.dataset.n));
+      break;
+    case 'sheet-program':
+      openSheet('Change program', programFormHtml(), bindProgramForm);
+      break;
+    case 'sheet-plan':
+      openPlanSheet();
+      break;
+    case 'sheet-history':
+      openHistorySheet();
+      break;
+    case 'sheet-tips':
+      openTipsSheet();
       break;
     case 'del-set':
       state.sets = state.sets.filter((s) => s.id !== id);
       save();
+      openHistorySheet();
       renderWorkout();
       break;
     case 'chart':
@@ -1019,8 +1077,8 @@ document.addEventListener('click', (e) => {
 
 /* ---------- Boot ---------- */
 
-// Tapping the dark area around the demo closes it.
-$('#demo').addEventListener('click', (e) => {
+// Tapping the dark area around the sheet closes it.
+$('#sheet').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) e.currentTarget.close();
 });
 

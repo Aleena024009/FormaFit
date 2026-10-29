@@ -265,7 +265,7 @@ th { color: var(--muted); font-weight: 500; }
   padding-left: 2px;
 }
 
-dialog#demo {
+dialog#sheet {
   width: min(520px, calc(100vw - 32px));
   max-height: calc(100dvh - 48px);
   padding: 16px;
@@ -274,9 +274,10 @@ dialog#demo {
   background: var(--surface);
   color: var(--text);
 }
-dialog#demo[open] { display: grid; gap: 12px; }
-dialog#demo::backdrop { background: rgba(0, 0, 0, .75); }
-dialog#demo .pill { justify-self: start; }
+/* max-content rows: items keep their size and the sheet scrolls instead of squashing them */
+dialog#sheet[open] { display: grid; gap: 12px; grid-auto-rows: max-content; align-content: start; }
+dialog#sheet::backdrop { background: rgba(0, 0, 0, .75); }
+dialog#sheet .pill { justify-self: start; }
 
 .demo-anim { position: relative; aspect-ratio: 3 / 2; border-radius: 12px; overflow: hidden; background: #000; }
 .demo-anim img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -304,3 +305,93 @@ a.button {
   text-decoration: none;
 }
 a.button.ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+
+/* Simple layout pieces */
+.center { text-align: center; display: block; margin: 0; }
+.title { font-size: 1.4rem; }
+.daynav { padding: 0 4px; }
+.bar > span.over { background: var(--warn); }
+.goal { display: grid; gap: 6px; }
+.goal + .goal { padding-top: 4px; }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.big-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  font-size: 1rem;
+  border-radius: 14px;
+}
+.big-btn span { font-size: 1.3rem; line-height: 1; }
+.big-btn.wide { width: 100%; }
+a.button:not(.ghost) { background: var(--accent); color: var(--accent-ink); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  font-weight: 500;
+  font-size: .88rem;
+}
+.chip .muted { font-size: .78rem; margin-left: 4px; }
+
+.stepper { display: flex; align-items: center; gap: 10px; }
+.stepper button { width: 42px; padding: 0; font-size: 1.2rem; }
+.stepper strong { min-width: 52px; text-align: center; }
+
+.exercise.complete { border-color: var(--accent); }
+.exercise .weight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: .9rem;
+}
+.exercise .weight input { width: 72px; text-align: center; }
+.bubbles { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.bubble {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--frame);
+  font-size: 1rem;
+}
+.bubble.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.done-banner { border-color: var(--accent); text-align: center; }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.tile .big { font-size: 1.3rem; }
+
+/* Bottom sheet on phones */
+dialog#sheet { overscroll-behavior: contain; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+body:has(dialog[open]) { overflow: hidden; }
+dialog#sheet h3 { margin-top: 4px; }
+@media (max-width: 600px) {
+  dialog#sheet {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    max-height: 88dvh;
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    animation: sheet-up .2s ease-out;
+  }
+}
+@keyframes sheet-up { from { transform: translateY(40px); } }
