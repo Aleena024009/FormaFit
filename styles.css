@@ -433,3 +433,27 @@ dialog#sheet h3 { margin-top: 4px; }
 }
 .option small { color: var(--muted); font-weight: 400; }
 .option:hover { border-color: var(--accent); }
+
+/* Week strip on the Workout tab */
+.week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.day-chip {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 0;
+  padding: 8px 2px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  font-weight: 500;
+}
+.day-chip .small { font-size: .68rem; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.day-chip strong { font-size: 1.05rem; }
+.day-chip.rest strong { color: var(--muted); }
+.day-chip.on { border-color: var(--accent); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--accent); }
+.day-chip.on .small { color: var(--accent); }

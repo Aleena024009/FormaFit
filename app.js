@@ -189,6 +189,7 @@ let viewDate = dateKey();
 
 function route() {
   const tab = location.hash.slice(1) || 'today';
+  if (tab !== 'workout') workoutOffset = 0;
   const view = $('#view');
   const nav = $('#tabbar');
 
@@ -562,6 +563,9 @@ function lastWeight(name) {
   return done.length ? done[0].weight : '';
 }
 
+// Days ahead of today shown in the Workout tab (0 = today).
+let workoutOffset = 0;
+
 function renderWorkout() {
   if (!hasPlan()) {
     $('#view').innerHTML = `
@@ -575,20 +579,49 @@ function renderWorkout() {
   }
 
   const todayIdx = new Date().getDay();
-  const plan = state.plan[todayIdx];
+  const isToday = workoutOffset === 0;
+  const dayIdx = (todayIdx + workoutOffset) % 7;
+  const plan = state.plan[dayIdx];
   const current = PROGRAMS.find((p) => p.id === state.programId);
   const total = plan.exercises.reduce((s, e) => s + (e.sets || 1), 0);
-  const done = plan.exercises.reduce((s, e) => s + Math.min(setsToday(e.name).length, e.sets || 1), 0);
+  const done = isToday ? plan.exercises.reduce((s, e) => s + Math.min(setsToday(e.name).length, e.sets || 1), 0) : 0;
+  const date = new Date();
+  date.setDate(date.getDate() + workoutOffset);
+  const dayName = isToday ? 'Today' : workoutOffset === 1 ? 'Tomorrow' : DAYS[dayIdx];
+  const focusTitle = (p) => (p.exercises.length ? `${esc(p.focus || 'Workout')}${p.focus && !/day$/i.test(p.focus) ? ' day' : ''}` : 'Rest day');
+
+  const strip = `
+    <div class="week-strip" role="tablist" aria-label="This week">
+      ${[0, 1, 2, 3, 4, 5, 6].map((off) => {
+        const idx = (todayIdx + off) % 7;
+        const d = new Date();
+        d.setDate(d.getDate() + off);
+        const p = state.plan[idx];
+        return `
+          <button role="tab" aria-selected="${off === workoutOffset}" class="day-chip ${off === workoutOffset ? 'on' : ''} ${p.exercises.length ? '' : 'rest'}" data-act="workout-day" data-off="${off}">
+            <span class="small">${off === 0 ? 'Today' : DAYS[idx].slice(0, 3)}</span>
+            <strong>${d.getDate()}</strong>
+            <span class="small">${p.exercises.length ? esc(p.focus || 'Gym') : 'Rest'}</span>
+          </button>`;
+      }).join('')}
+    </div>`;
 
   let body;
   if (!plan.exercises.length) {
-    const next = [1, 2, 3, 4, 5, 6].map((i) => (todayIdx + i) % 7).find((i) => state.plan[i].exercises.length);
+    const next = [1, 2, 3, 4, 5, 6].map((k) => (dayIdx + k) % 7).find((k) => state.plan[k].exercises.length);
     body = `
       <section class="card">
-        <h2>Rest day</h2>
         <p class="muted small" style="margin:0">Your muscles grow while you rest. A light walk is enough.</p>
         ${next != null ? `<p class="small" style="margin:0">Next workout: <strong>${DAYS[next]} · ${esc(state.plan[next].focus)}</strong></p>` : ''}
       </section>`;
+  } else if (!isToday) {
+    body = `
+      <section class="card">
+        <ul class="list">${plan.exercises.map((e) => `
+          <li>${exerciseButton(e.name, setsReps(e))}<span class="muted small">${e.sets ? `${e.sets} × ${esc(e.reps)}` : ''}</span></li>`).join('')}
+        </ul>
+      </section>
+      <p class="muted small center">You can tick off sets on the day. Tap ▶ to see how each exercise is done.</p>`;
   } else {
     body = `
       ${done >= total ? '<section class="card done-banner"><h2>Workout complete ✓</h2><p class="muted small" style="margin:0">Great job. Drink water and eat some protein.</p></section>' : ''}
@@ -618,12 +651,15 @@ function renderWorkout() {
   }
 
   $('#view').innerHTML = `
+    ${strip}
+
     <section class="card">
-      <div class="muted small">${DAYS[todayIdx]} · ${current ? current.name : 'My plan'}</div>
-      <h2 class="title">${plan.exercises.length ? `${esc(plan.focus || 'Workout')}${plan.focus && !/day$/i.test(plan.focus) ? ' day' : ''}` : 'Rest day'}</h2>
-      ${plan.exercises.length ? `
+      <div class="muted small">${dayName}${isToday ? ` · ${DAYS[dayIdx]}` : ` · ${prettyDate(dateKey(date), { day: 'numeric', month: 'short' })}`} · ${current ? current.name : 'My plan'}</div>
+      <h2 class="title">${focusTitle(plan)}</h2>
+      ${plan.exercises.length ? (isToday ? `
         <div class="bar"><span style="width:${(done / total) * 100}%"></span></div>
-        <div class="muted small">${done} of ${total} sets done</div>` : ''}
+        <div class="muted small">${done} of ${total} sets done</div>` : `
+        <div class="muted small">${plan.exercises.length} exercises · ${total} sets</div>`) : ''}
     </section>
 
     ${body}
@@ -1203,6 +1239,10 @@ document.addEventListener('click', (e) => {
       renderToday();
       break;
     }
+    case 'workout-day':
+      workoutOffset = Number(el.dataset.off);
+      renderWorkout();
+      break;
     case 'set':
       toggleSet(Number(el.dataset.ex), Number(el.dataset.n));
       break;
