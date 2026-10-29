@@ -219,11 +219,13 @@ window.addEventListener('hashchange', route);
 /* ---------- Sheet ---------- */
 
 // One pop-up sheet for every form, so screens only show summaries.
-function openSheet(title, html, bind) {
+// `actions` is extra HTML placed in the header, left of the close button.
+function openSheet(title, html, bind, actions = '') {
   const sheet = $('#sheet');
   sheet.innerHTML = `
     <div class="row between">
-      <h2 id="sheet-title">${title}</h2>
+      <h2 id="sheet-title" class="grow">${title}</h2>
+      ${actions}
       <button class="icon" data-act="close-sheet" aria-label="Close">✕</button>
     </div>
     ${html}`;
@@ -868,8 +870,13 @@ function showDemo(name, detail) {
       </div>
       <ol class="steps">${demo.steps.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>`
     : '<p class="empty">No photos for this exercise yet. Watch a video instead.</p>'}
-    <a class="button" href="${reels}" target="_blank" rel="noopener">▶ Watch reels on Instagram</a>
-    <a class="muted small center" href="${youtube}" target="_blank" rel="noopener">or watch on YouTube</a>`);
+    `, null, `
+    <a class="video-link" href="${youtube}" target="_blank" rel="noopener" aria-label="Watch ${esc(name)} videos on YouTube" title="YouTube">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path class="glyph" d="M10 9l5 3-5 3z"/></svg>
+    </a>
+    <a class="video-link" href="${reels}" target="_blank" rel="noopener" aria-label="Watch ${esc(name)} reels on Instagram" title="Instagram">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" class="outline"/><circle cx="12" cy="12" r="4" class="outline"/><circle cx="17.3" cy="6.7" r="1.2" class="dot"/></svg>
+    </a>`);
 }
 
 /* ---------- Progress ---------- */
