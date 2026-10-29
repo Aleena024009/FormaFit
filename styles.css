@@ -1,14 +1,15 @@
 :root {
-  --bg: #06231d;
-  --surface: #0b3a31;
-  --surface-2: #104a3f;
-  --line: #1c5a4d;
-  --text: #eef7ea;
-  --muted: #9dbcb2;
-  --accent: #a6e84a;
-  --accent-ink: #0b3a31;
-  --warn: #ffb85c;
-  --danger: #ff7a7a;
+  --bg: #0a0a0a;
+  --surface: #141311;
+  --surface-2: #1e1b15;
+  --line: #2f2a1e;
+  --frame: #8c6d23;
+  --text: #f5efe0;
+  --muted: #a69d86;
+  --accent: #d4af37;
+  --accent-ink: #0a0a0a;
+  --warn: #ff8a3d;
+  --danger: #ff6b6b;
   --radius: 16px;
   color-scheme: dark;
 }
@@ -55,7 +56,7 @@ main > * { min-width: 0; }
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--frame);
   border-radius: var(--radius);
   padding: 16px;
   display: grid;
@@ -171,7 +172,7 @@ th { color: var(--muted); font-weight: 500; }
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   background: var(--surface);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--frame);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 10;
 }
