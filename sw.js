@@ -1,10 +1,11 @@
-const CACHE = 'formafit-v3';
+const CACHE = 'formafit-v4';
 const SHELL = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './programs.js',
+  './demos.js',
   './manifest.webmanifest',
   './icons/icon.svg',
   './icons/icon-192.png',
@@ -31,7 +32,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request)
+    // no-cache: always revalidate with the server so updates arrive right away.
+    fetch(e.request.url, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy));

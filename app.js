@@ -295,7 +295,7 @@ function renderToday() {
       ${plan.exercises.length
         ? `<ul class="list">${plan.exercises.map((e) => `
             <li>
-              <span class="grow">${esc(e.name)}</span>
+              ${exerciseButton(e.name, setsReps(e))}
               <span class="muted small">${setsReps(e)}</span>
               <button class="icon" data-act="log-ex" data-name="${esc(e.name)}" aria-label="Log a set of ${esc(e.name)}">Log</button>
             </li>`).join('')}</ul>`
@@ -398,7 +398,35 @@ function renderWorkout() {
   const prs = personalBests();
   const hasPlan = state.plan.some((p) => p.focus || p.exercises.length);
 
+  const current = PROGRAMS.find((p) => p.id === state.programId);
+  const programForm = `
+    <form id="program-form" style="display:grid;gap:12px">
+      ${programPicker(state.programId, state.scheduleId)}
+      <button type="submit">${hasPlan ? 'Switch to this program' : 'Start this program'}</button>
+      ${hasPlan ? '<p class="muted small" style="margin:0">This replaces your weekly plan. Your logged sets are kept.</p>' : ''}
+    </form>`;
+
   $('#view').innerHTML = `
+    ${hasPlan ? `
+    <section class="card">
+      <div class="row between">
+        <div>
+          <div class="muted small">Your program</div>
+          <h2>${current ? current.name : 'Custom plan'}</h2>
+          ${current && state.scheduleId ? `<div class="muted small">${SCHEDULES[state.scheduleId].label} · ${SCHEDULES[state.scheduleId].detail}</div>` : ''}
+        </div>
+      </div>
+      <details>
+        <summary class="muted small">Change program</summary>
+        ${programForm}
+      </details>
+    </section>` : `
+    <section class="card">
+      <h2>Choose your workout</h2>
+      <p class="muted small" style="margin:0">Tap a program. Your whole week is filled in for you, with sets and reps for every exercise. You can change anything later.</p>
+      ${programForm}
+    </section>`}
+
     <section class="card">
       <h2>Log a set</h2>
       <form id="set-form" class="grid-2" autocomplete="off">
@@ -414,24 +442,8 @@ function renderWorkout() {
     </section>
 
     <section class="card">
-      <h2>Push Pull Legs programs</h2>
-      <form id="program-form" class="grid-2">
-        <label style="grid-column:1/-1">Program
-          <select name="program">${PROGRAMS.map((p) => `<option value="${p.id}" ${state.programId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}</select>
-        </label>
-        <label style="grid-column:1/-1">Schedule
-          <select name="schedule">${Object.entries(SCHEDULES).map(([k, s]) => `<option value="${k}" ${(state.scheduleId ?? 'six') === k ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
-        </label>
-        <button type="button" class="ghost" data-act="preview-program">Preview</button>
-        <button type="submit">Use program</button>
-      </form>
-      <div id="program-preview"></div>
-      ${hasPlan ? '<p class="muted small" style="margin:0">Using a program replaces your current weekly plan. Your logged sets are kept.</p>' : ''}
-    </section>
-
-    <section class="card">
-      <h2>Weekly plan</h2>
-      <p class="muted small" style="margin:0">One exercise per line, like <em>Bench Press, 3 x 8-10</em>. Leave a day empty to rest.</p>
+      <h2>${hasPlan ? 'Weekly plan' : 'Or build your own plan'}</h2>
+      <p class="muted small" style="margin:0">Tap a day to edit it. One exercise per line, like <em>Bench Press, 3 x 8-10</em>. Leave a day empty to rest.</p>
       ${state.plan.map((p, i) => `
         <details ${i === todayIdx ? 'open' : ''}>
           <summary>${DAYS[i]}${i === todayIdx ? ' · today' : ''} <span class="muted small" style="font-weight:400">${esc(p.focus)}</span></summary>
@@ -501,12 +513,13 @@ function renderWorkout() {
     renderWorkout();
   }));
 
+  bindProgramPicker($('#program-form'));
   $('#program-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const f = formData(e.target);
     if (hasPlan && !confirm('Replace your weekly plan with this program?')) return;
     applyProgram(f.program, f.schedule);
-    toast('Program added to your weekly plan');
+    toast('Your week is ready');
     renderWorkout();
   });
 
@@ -532,9 +545,51 @@ function applyProgram(programId, scheduleId) {
 
 function programPreview(programId) {
   const program = PROGRAMS.find((p) => p.id === programId);
-  return Object.entries(PPL_LABELS).map(([type, label]) => `
-    <h3 style="margin:10px 0 6px">${label}</h3>
-    <ul class="list">${program[type].map(([name, sets, reps]) => `<li><span class="grow">${name}</span><span class="muted small">${sets} × ${reps}</span></li>`).join('')}</ul>`).join('');
+  if (!program) return '';
+  return `
+    <details class="preview">
+      <summary class="small">See the exercises in ${program.name}</summary>
+      ${Object.entries(PPL_LABELS).map(([type, label]) => `
+        <h3 style="margin:10px 0 6px">${label} day</h3>
+        <ul class="list">${program[type].map(([name, sets, reps]) => `<li>${exerciseButton(name, `${sets} × ${reps}`)}<span class="muted small">${sets} × ${reps}</span></li>`).join('')}</ul>`).join('')}
+    </details>`;
+}
+
+// Tap-to-select program cards plus a days-per-week toggle.
+// With allowSkip, a "decide later" card is added at the end.
+function programPicker(selectedId, scheduleId, allowSkip = false) {
+  const selected = selectedId || PROGRAMS[0].id;
+  const card = (value, title, about) => `
+    <label class="choice">
+      <input type="radio" name="program" value="${value}" ${selected === value ? 'checked' : ''}>
+      <span><strong>${title}</strong><small>${about}</small></span>
+    </label>`;
+  return `
+    <div class="choices">
+      ${PROGRAMS.map((p) => card(p.id, p.name, p.about)).join('')}
+      ${allowSkip ? card('none', 'Decide later', 'Skip for now. You can pick one in the Workout tab.') : ''}
+    </div>
+    <div class="schedule-pick">
+      <h3>How many days a week?</h3>
+      <div class="segmented">
+        ${Object.entries(SCHEDULES).map(([k, s]) => `
+          <label class="choice">
+            <input type="radio" name="schedule" value="${k}" ${(scheduleId || 'six') === k ? 'checked' : ''}>
+            <span><strong>${s.label}</strong><small>${s.detail}</small></span>
+          </label>`).join('')}
+      </div>
+    </div>
+    <div class="program-preview">${programPreview(selected)}</div>`;
+}
+
+function bindProgramPicker(form) {
+  const sync = () => {
+    const id = form.querySelector('input[name=program]:checked')?.value;
+    form.querySelector('.program-preview').innerHTML = programPreview(id);
+    form.querySelector('.schedule-pick').hidden = id === 'none';
+  };
+  form.querySelectorAll('input[name=program]').forEach((r) => r.addEventListener('change', sync));
+  sync();
 }
 
 function personalBests() {
@@ -549,6 +604,43 @@ function personalBests() {
 
 function groupBy(arr, fn) {
   return arr.reduce((acc, x) => ((acc[fn(x)] ||= []).push(x), acc), {});
+}
+
+/* ---------- Exercise demos ---------- */
+
+function demoFor(name) {
+  if (DEMOS[name]) return DEMOS[name];
+  const key = Object.keys(DEMOS).find((k) => k.toLowerCase() === name.trim().toLowerCase());
+  return key ? DEMOS[key] : null;
+}
+
+function exerciseButton(name, detail = '') {
+  return `<button type="button" class="ex-name grow" data-act="demo" data-name="${esc(name)}" data-detail="${esc(detail)}">
+    <span class="play" aria-hidden="true">▶</span>${esc(name)}</button>`;
+}
+
+function showDemo(name, detail) {
+  const demo = demoFor(name);
+  const video = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} exercise proper form`)}`;
+  const dialog = $('#demo');
+  dialog.innerHTML = `
+    <div class="row between">
+      <h2 id="demo-title">${esc(name)}</h2>
+      <button class="icon" data-act="close-demo" aria-label="Close">✕</button>
+    </div>
+    ${detail ? `<span class="pill">${esc(detail)}</span>` : ''}
+    ${demo ? `
+      <div class="demo-anim" role="img" aria-label="${esc(name)}: start and end position">
+        <img src="demos/${demo.id}/0.jpg" alt="">
+        <img src="demos/${demo.id}/1.jpg" alt="" class="end">
+      </div>
+      <ol class="steps">${demo.steps.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>`
+    : '<p class="empty">No demo photos for this exercise yet. Watch a video below.</p>'}
+    <div class="row">
+      <a class="button ghost grow" href="${video}" target="_blank" rel="noopener">▶ Watch video</a>
+      <button class="grow" data-act="log-ex" data-name="${esc(name)}">Log a set</button>
+    </div>`;
+  dialog.showModal();
 }
 
 /* ---------- Progress ---------- */
@@ -688,13 +780,13 @@ function profileForm(onboarding) {
     ${onboarding ? `
     <section class="card">
       <h2>Welcome to FormaFit</h2>
-      <p class="muted" style="margin:0">Tell us about yourself. Your calorie, protein and water targets are calculated from these numbers. You can edit everything later in Profile.</p>
+      <p class="muted" style="margin:0">Two quick steps: a few numbers about you, then pick a workout. Your calorie, protein and water targets are worked out for you. You can change anything later.</p>
       <p class="hint">Everything stays on this device. Nothing is uploaded.</p>
     </section>` : ''}
 
     <form id="profile-form" style="display:grid;gap:14px" autocomplete="off">
       <section class="card">
-        <h2>About you</h2>
+        <h2>${onboarding ? '1. About you' : 'About you'}</h2>
         <div class="grid-2">
           <label style="grid-column:1/-1">Name (optional)<input name="name" value="${v('name')}"></label>
           <label>Age<input name="age" type="number" inputmode="numeric" min="13" max="100" required value="${v('age')}"></label>
@@ -703,30 +795,44 @@ function profileForm(onboarding) {
           </label>
           <label>Height (cm)<input name="height" type="number" inputmode="decimal" min="100" max="250" step="0.1" required value="${v('height')}"></label>
           <label>${onboarding ? 'Weight' : 'Starting weight'} (kg)<input name="weight" type="number" inputmode="decimal" min="25" max="300" step="0.1" required value="${v('weight')}"></label>
-          <label style="grid-column:1/-1">Activity level
-            <select name="activity">${Object.entries(ACTIVITY).map(([k, a]) => opt('activity', k, a.label, 'moderate')).join('')}</select>
-          </label>
         </div>
       </section>
 
       <section class="card">
-        <h2>Goal</h2>
-        <div class="grid-2">
-          <label>Goal
-            <select name="goal">${opt('goal', 'lose', 'Lose fat', 'lose')}${opt('goal', 'maintain', 'Maintain / recomp', 'lose')}${opt('goal', 'gain', 'Gain muscle', 'lose')}</select>
-          </label>
-          <label>Pace (kg/week)
-            <select name="pace">${[0.25, 0.5, 0.75].map((n) => `<option value="${n}" ${(p.pace ?? 0.25) === n ? 'selected' : ''}>${n}</option>`).join('')}</select>
-          </label>
-          <label>Target weight (kg)<input name="targetWeight" type="number" inputmode="decimal" min="25" max="300" step="0.1" value="${v('targetWeight')}"></label>
-          <label>Protein (g per kg)<input name="proteinPerKg" type="number" inputmode="decimal" min="0.8" max="3" step="0.1" required value="${v('proteinPerKg', 1.6)}"></label>
-          <label>Sleep goal (hours)<input name="sleepGoal" type="number" inputmode="decimal" min="4" max="12" step="0.5" value="${v('sleepGoal', 7)}"></label>
-          <label>Glass size (ml)<input name="glassMl" type="number" inputmode="numeric" min="50" max="1000" step="50" required value="${v('glassMl', 250)}"></label>
-          <label style="grid-column:1/-1">BMI scale
-            <select name="bmiScale">${Object.entries(BMI_SCALES).map(([k, s]) => opt('bmiScale', k, s.label, 'standard')).join('')}</select>
-          </label>
+        <h2>${onboarding ? 'Your goal' : 'Goal'}</h2>
+        <div class="segmented three">
+          ${[['lose', 'Lose fat'], ['maintain', 'Tone up'], ['gain', 'Build muscle']].map(([k, label]) => `
+            <label class="choice">
+              <input type="radio" name="goal" value="${k}" ${(p.goal ?? 'lose') === k ? 'checked' : ''}>
+              <span><strong>${label}</strong></span>
+            </label>`).join('')}
         </div>
+        <label>How active are you?
+          <select name="activity">${Object.entries(ACTIVITY).map(([k, a]) => opt('activity', k, a.label, 'moderate')).join('')}</select>
+        </label>
+        <details ${onboarding ? '' : 'open'}>
+          <summary class="muted small">More options${onboarding ? ' (optional, defaults are fine)' : ''}</summary>
+          <div class="grid-2">
+            <label>Target weight (kg)<input name="targetWeight" type="number" inputmode="decimal" min="25" max="300" step="0.1" value="${v('targetWeight')}"></label>
+            <label>Pace (kg/week)
+              <select name="pace">${[0.25, 0.5, 0.75].map((n) => `<option value="${n}" ${(p.pace ?? 0.25) === n ? 'selected' : ''}>${n}</option>`).join('')}</select>
+            </label>
+            <label>Protein (g per kg)<input name="proteinPerKg" type="number" inputmode="decimal" min="0.8" max="3" step="0.1" required value="${v('proteinPerKg', 1.6)}"></label>
+            <label>Sleep goal (hours)<input name="sleepGoal" type="number" inputmode="decimal" min="4" max="12" step="0.5" value="${v('sleepGoal', 7)}"></label>
+            <label>Glass size (ml)<input name="glassMl" type="number" inputmode="numeric" min="50" max="1000" step="50" required value="${v('glassMl', 250)}"></label>
+            <label>BMI scale
+              <select name="bmiScale">${Object.entries(BMI_SCALES).map(([k, s]) => opt('bmiScale', k, s.label, 'standard')).join('')}</select>
+            </label>
+          </div>
+        </details>
       </section>
+
+      ${onboarding ? `
+      <section class="card" id="onboard-program">
+        <h2>2. Pick your workout</h2>
+        <p class="muted small" style="margin:0">Tap one. We'll fill in your whole week with sets and reps.</p>
+        ${programPicker(null, null, true)}
+      </section>` : ''}
 
       ${t ? `
       <section class="card">
@@ -785,6 +891,7 @@ function bindProfileForm(onboarding) {
     if (onboarding && !state.measurements.length) {
       state.measurements.push({ id: uid(), date: dateKey(), weight: state.profile.weight, note: 'Starting weight' });
     }
+    if (onboarding && f.program && f.program !== 'none') applyProgram(f.program, f.schedule);
     save();
     toast(onboarding ? 'Welcome!' : 'Profile saved');
     if (onboarding) location.hash = '#today';
@@ -793,6 +900,7 @@ function bindProfileForm(onboarding) {
 
   const file = $('#import-file');
   if (file) file.addEventListener('change', importBackup);
+  if (onboarding) bindProgramPicker($('#onboard-program'));
 }
 
 function renderProfile() {
@@ -865,11 +973,17 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'log-ex':
+      if ($('#demo').open) $('#demo').close();
       pendingExercise = el.dataset.name;
-      location.hash = '#workout';
+      if (location.hash === '#workout') renderWorkout();
+      else location.hash = '#workout';
       break;
-    case 'preview-program':
-      $('#program-preview').innerHTML = programPreview($('#program-form').program.value);
+    case 'demo':
+      e.preventDefault();
+      showDemo(el.dataset.name, el.dataset.detail);
+      break;
+    case 'close-demo':
+      $('#demo').close();
       break;
     case 'del-set':
       state.sets = state.sets.filter((s) => s.id !== id);
@@ -905,6 +1019,11 @@ document.addEventListener('click', (e) => {
 
 /* ---------- Boot ---------- */
 
+// Tapping the dark area around the demo closes it.
+$('#demo').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.close();
+});
+
 route();
 
 // Keep "Today" correct if the app stays open past midnight.
@@ -917,5 +1036,19 @@ document.addEventListener('visibilitychange', () => {
 });
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  // Reload once when a new version takes over, so nobody is stuck on old files.
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloaded) return;
+    reloaded = true;
+    location.reload();
+  });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+    }).catch(() => {});
+  });
 }
