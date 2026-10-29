@@ -291,6 +291,8 @@ function renderToday() {
       <button class="big-btn" data-act="water" data-ml="${state.profile.glassMl}"><span>＋</span>Glass of water</button>
     </div>
 
+    ${mealPlanCard(viewDate)}
+
     <section class="card">${workout}</section>
 
     <section class="card">
@@ -355,6 +357,171 @@ function openFoodSheet() {
       e.preventDefault();
       const f = formData(form);
       addFood({ name: f.name.trim(), kcal: Math.round(num(f.kcal) || 0), protein: num(f.protein) || 0 });
+    });
+  });
+}
+
+/* ---------- Meal plan ---------- */
+
+const mealPlan = () => state.mealPlan || MEAL_TEMPLATE;
+const mealById = (id) => mealPlan().find((m) => m.id === id);
+const toMinutes = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
+
+function clockTime(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
+function mealDone(key, meal) {
+  const d = day(key);
+  if (meal.workout) return d.workoutDone || !!d.mealsDone?.[meal.id];
+  return !!d.mealsDone?.[meal.id] || d.foods.some((f) => f.planMeal === meal.id);
+}
+
+// The meal whose time slot we're in now, or else the next one not yet done.
+function currentMealId(key) {
+  if (key !== dateKey()) return null;
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  const meals = [...mealPlan()].sort((a, b) => toMinutes(a.time) - toMinutes(b.time));
+  const open = meals.filter((m) => !mealDone(key, m));
+  const inSlot = open.find((m) => {
+    const i = meals.indexOf(m);
+    const end = meals[i + 1] ? toMinutes(meals[i + 1].time) : 24 * 60;
+    return toMinutes(m.time) <= now && now < end;
+  });
+  return (inSlot || open.find((m) => toMinutes(m.time) > now))?.id ?? null;
+}
+
+function mealPlanCard(key) {
+  const current = currentMealId(key);
+  const meals = [...mealPlan()].sort((a, b) => toMinutes(a.time) - toMinutes(b.time));
+  return `
+    <section class="card">
+      <div class="row between">
+        <h2>Meal plan</h2>
+        <button class="icon small" data-act="food-rules">Food rules</button>
+      </div>
+      <ul class="schedule">
+        ${meals.map((m) => {
+          const done = mealDone(key, m);
+          return `
+            <li>
+              <button class="slot ${done ? 'done' : ''} ${m.id === current ? 'now' : ''}" data-act="meal" data-id="${esc(m.id)}">
+                <span class="time">${clockTime(m.time)}</span>
+                <span class="grow">${esc(m.name)}</span>
+                <span class="state">${done ? '✓' : m.id === current ? 'Now' : '›'}</span>
+              </button>
+            </li>`;
+        }).join('')}
+      </ul>
+      <button class="icon small" data-act="edit-meals" style="justify-self:start">Edit meal plan</button>
+    </section>`;
+}
+
+function openMealSheet(id) {
+  const meal = mealById(id);
+  if (!meal) return;
+  const optionLabel = (o) => (o.water ? `${o.water} ml water` : `about ${o.kcal} kcal${o.protein ? ` · ${o.protein} g protein` : ''}`);
+  openSheet(`${clockTime(meal.time)} · ${esc(meal.name)}`, `
+    ${meal.note ? `<p class="hint" style="margin:0">${esc(meal.note)}</p>` : ''}
+    ${meal.workout ? '<a class="button" href="#workout" data-act="close-sheet">Go to my workout</a>' : ''}
+    ${meal.options.length ? `
+      <div class="muted small">${meal.workout ? 'Optional, before you start:' : 'Tap what you had. It is added to your food log.'}</div>
+      <div class="options">
+        ${meal.options.map((o, i) => `
+          <button class="option" data-opt="${i}">
+            <span>${esc(o.text)}</span>
+            <small>${optionLabel(o)}</small>
+          </button>`).join('')}
+      </div>` : ''}
+    ${mealDone(viewDate, meal) && !meal.workout ? '<button class="ghost" data-undo-meal>Not done yet</button>' : ''}`, (sheet) => {
+    sheet.querySelectorAll('[data-opt]').forEach((b) => b.addEventListener('click', () => {
+      const o = meal.options[b.dataset.opt];
+      const d = day(viewDate);
+      if (o.water) d.water += o.water;
+      else d.foods.push({ id: uid(), name: o.text, meal: meal.name, planMeal: meal.id, kcal: o.kcal || 0, protein: o.protein || 0 });
+      (d.mealsDone ||= {})[meal.id] = true;
+      save();
+      closeSheet();
+      toast(o.water ? 'Water added' : `Added ${o.text}`);
+      renderToday();
+    }));
+    const undo = sheet.querySelector('[data-undo-meal]');
+    if (undo) undo.addEventListener('click', () => {
+      const d = day(viewDate);
+      if (d.mealsDone) delete d.mealsDone[meal.id];
+      d.foods = d.foods.filter((f) => f.planMeal !== meal.id);
+      save();
+      closeSheet();
+      renderToday();
+    });
+  });
+}
+
+function openRulesSheet() {
+  openSheet('Food rules', `
+    <ol class="steps">${FOOD_RULES.map(([title, text]) => `<li><strong>${title}.</strong> ${text}</li>`).join('')}</ol>`);
+}
+
+// Options are edited as lines: "text | kcal | protein" or "text | water 250".
+function optionLine(o) {
+  return o.water ? `${o.text} | water ${o.water}` : `${o.text} | ${o.kcal ?? 0} | ${o.protein ?? 0}`;
+}
+
+function parseOption(line) {
+  const [text, a = '', b = ''] = line.split('|').map((x) => x.trim());
+  const water = a.match(/^water\s*(\d+)/i);
+  if (water) return { text, water: Number(water[1]) };
+  return { text, kcal: num(a) || 0, protein: num(b) || 0 };
+}
+
+function openMealEditSheet() {
+  const meals = [...mealPlan()].sort((a, b) => toMinutes(a.time) - toMinutes(b.time));
+  openSheet('Edit meal plan', `
+    <p class="muted small" style="margin:0">One food per line, like <em>2 idli + sambar | 250 | 8</em> (calories, then protein). Clear the name to remove a meal.</p>
+    ${meals.map((m) => `
+      <details>
+        <summary>${clockTime(m.time)} · ${esc(m.name)}</summary>
+        <form class="meal-form" data-id="${esc(m.id)}" style="display:grid;gap:10px">
+          <div class="grid-2">
+            <label>Time<input name="time" type="time" value="${m.time}" required></label>
+            <label>Name<input name="name" value="${esc(m.name)}"></label>
+          </div>
+          <label>Note<input name="note" value="${esc(m.note || '')}"></label>
+          <label>Foods<textarea name="options" rows="${Math.max(3, m.options.length + 1)}">${esc(m.options.map(optionLine).join('\n'))}</textarea></label>
+          <button type="submit" class="ghost">Save</button>
+        </form>
+      </details>`).join('')}
+    <div class="row">
+      <button class="ghost grow" data-add-meal>Add a meal</button>
+      <button class="ghost grow" data-reset-meals>Reset plan</button>
+    </div>`, (sheet) => {
+    const commit = (list, msg) => {
+      state.mealPlan = list;
+      save();
+      toast(msg);
+      openMealEditSheet();
+      renderToday();
+    };
+    sheet.querySelectorAll('.meal-form').forEach((form) => form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = formData(form);
+      const list = mealPlan().map((m) => ({ ...m }));
+      const i = list.findIndex((m) => m.id === form.dataset.id);
+      if (!f.name.trim()) list.splice(i, 1);
+      else list[i] = { ...list[i], time: f.time, name: f.name.trim(), note: f.note.trim(), options: f.options.split('\n').map((l) => l.trim()).filter(Boolean).map(parseOption) };
+      commit(list, f.name.trim() ? 'Meal saved' : 'Meal removed');
+    }));
+    sheet.querySelector('[data-add-meal]').addEventListener('click', () => {
+      commit([...mealPlan(), { id: uid(), time: '12:00', name: 'New meal', note: '', options: [] }], 'Meal added');
+    });
+    sheet.querySelector('[data-reset-meals]').addEventListener('click', () => {
+      if (!confirm('Go back to the original meal plan?')) return;
+      delete state.mealPlan;
+      save();
+      toast('Plan reset');
+      openMealEditSheet();
+      renderToday();
     });
   });
 }
@@ -1015,6 +1182,15 @@ document.addEventListener('click', (e) => {
       break;
     case 'add-food':
       openFoodSheet();
+      break;
+    case 'meal':
+      openMealSheet(el.dataset.id);
+      break;
+    case 'food-rules':
+      openRulesSheet();
+      break;
+    case 'edit-meals':
+      openMealEditSheet();
       break;
     case 'add-measure':
       openMeasureSheet();
