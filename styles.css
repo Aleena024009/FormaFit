@@ -18,6 +18,16 @@
 
 html, body { margin: 0; }
 
+/* Feel like a fixed app screen on phones: no sideways sliding, no
+   double-tap zoom, no font inflation, no rubber-band bounce. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+body { overflow-x: hidden; touch-action: manipulation; }
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -68,14 +78,16 @@ main > * { min-width: 0; }
 .wrap { flex-wrap: wrap; }
 .grow { flex: 1; min-width: 0; }
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 
 label { display: grid; gap: 4px; font-size: .82rem; color: var(--muted); }
 
 input, select, textarea {
   width: 100%;
+  min-width: 0; /* let boxes shrink to fit narrow phones */
   font: inherit;
+  font-size: 16px; /* below 16px, phones zoom in when a box is tapped */
   color: var(--text);
   background: var(--bg);
   border: 1px solid var(--line);
@@ -209,7 +221,7 @@ th { color: var(--muted); font-weight: 500; }
 .hint { font-size: .82rem; color: var(--muted); background: var(--bg); border-radius: 10px; padding: 10px 12px; }
 
 @media (max-width: 380px) {
-  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ring { width: 100px; height: 100px; }
 }
 
@@ -220,8 +232,9 @@ th { color: var(--muted); font-weight: 500; }
 .schedule-pick { display: grid; gap: 8px; }
 .schedule-pick[hidden] { display: none; }
 
-.choice { display: block; color: var(--text); font-size: .95rem; cursor: pointer; }
-.choice input { position: absolute; opacity: 0; pointer-events: none; }
+.choice { position: relative; display: block; color: var(--text); font-size: .95rem; cursor: pointer; }
+/* Hidden radio: keep it tiny and inside the card, or it widens the page. */
+.choice input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; min-height: 0; padding: 0; opacity: 0; pointer-events: none; }
 .choice > span {
   display: grid;
   gap: 2px;
@@ -491,3 +504,13 @@ dialog#sheet h3 { margin-top: 4px; }
 }
 .google-btn .g { width: 20px; height: 20px; }
 .google-btn:disabled { opacity: .6; cursor: default; }
+
+/* Narrow phones: keep set bubbles on one line and day names readable. */
+@media (max-width: 360px) {
+  .bubbles { gap: 6px; }
+  .bubble { width: 40px; height: 40px; min-height: 40px; }
+  .exercise .weight input { width: 58px; padding: 8px 4px; }
+  .week-strip { gap: 4px; }
+  .day-chip { padding: 8px 0; }
+  .day-chip .small { font-size: .62rem; }
+}
