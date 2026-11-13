@@ -889,46 +889,48 @@ function exerciseButton(name, detail = '') {
 
 /* ---------- Muscle map ---------- */
 
-// Simple front and back figure. Each muscle group maps to shapes on either view.
-const BODY_BASE = (x) => `
-  <circle cx="${x}" cy="14" r="9"/>
-  <rect x="${x - 5}" y="22" width="10" height="7" rx="2"/>
-  <path d="M${x - 20} 30 Q${x} 26 ${x + 20} 30 L${x + 17} 88 Q${x} 94 ${x - 17} 88 Z"/>
-  <rect x="${x - 30}" y="32" width="10" height="34" rx="5"/><rect x="${x + 20}" y="32" width="10" height="34" rx="5"/>
-  <rect x="${x - 33}" y="64" width="9" height="30" rx="4.5"/><rect x="${x + 24}" y="64" width="9" height="30" rx="4.5"/>
+// Simple female figure, front and back. Each muscle group maps to shapes on either view.
+const BODY_BASE = (x, back) => `
+  <circle cx="${x}" cy="14" r="8.5"/>
+  <path class="hair" d="${back
+    ? `M${x - 9} 15 Q${x - 9} 4 ${x} 4 Q${x + 9} 4 ${x + 9} 15 Q${x} 21 ${x - 9} 15 Z`
+    : `M${x - 9} 16 Q${x - 10} 3 ${x} 3.5 Q${x + 10} 3 ${x + 9} 16 Q${x + 6} 8 ${x} 8 Q${x - 6} 8 ${x - 9} 16 Z`}"/>
+  <rect x="${x - 4}" y="21" width="8" height="8" rx="2"/>
+  ${back ? `<ellipse class="hair" cx="${x}" cy="27" rx="3.5" ry="8"/>` : ''}
+  <path d="M${x - 17} 31 Q${x} 26 ${x + 17} 31 L${x + 12} 62 Q${x + 19} 78 ${x + 18} 92 Q${x} 99 ${x - 18} 92 Q${x - 19} 78 ${x - 12} 62 Z"/>
+  <rect x="${x - 27}" y="32" width="8" height="32" rx="4"/><rect x="${x + 19}" y="32" width="8" height="32" rx="4"/>
+  <rect x="${x - 29}" y="62" width="7" height="30" rx="3.5"/><rect x="${x + 22}" y="62" width="7" height="30" rx="3.5"/>
   <rect x="${x - 17}" y="86" width="16" height="58" rx="8"/><rect x="${x + 1}" y="86" width="16" height="58" rx="8"/>
-  <rect x="${x - 15}" y="142" width="12" height="44" rx="6"/><rect x="${x + 3}" y="142" width="12" height="44" rx="6"/>`;
+  <rect x="${x - 14}" y="142" width="11" height="44" rx="5.5"/><rect x="${x + 3}" y="142" width="11" height="44" rx="5.5"/>`;
 
 const FRONT = 45;
 const BACK = 135;
+const pair = (cx, cy, rx, ry, xs) => xs.map((x) => `<ellipse cx="${x - cx}" cy="${cy}" rx="${rx}" ry="${ry}"/><ellipse cx="${x + cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`).join('');
 const MUSCLE_SHAPES = {
-  chest: `<ellipse cx="${FRONT - 8}" cy="42" rx="9" ry="7"/><ellipse cx="${FRONT + 8}" cy="42" rx="9" ry="7"/>`,
-  shoulders: `<ellipse cx="${FRONT - 22}" cy="36" rx="6" ry="6"/><ellipse cx="${FRONT + 22}" cy="36" rx="6" ry="6"/>
-    <ellipse cx="${BACK - 22}" cy="36" rx="6" ry="6"/><ellipse cx="${BACK + 22}" cy="36" rx="6" ry="6"/>`,
-  biceps: `<ellipse cx="${FRONT - 25}" cy="52" rx="4" ry="9"/><ellipse cx="${FRONT + 25}" cy="52" rx="4" ry="9"/>`,
-  triceps: `<ellipse cx="${BACK - 25}" cy="52" rx="4" ry="9"/><ellipse cx="${BACK + 25}" cy="52" rx="4" ry="9"/>`,
-  forearms: `<ellipse cx="${FRONT - 28}" cy="76" rx="3.5" ry="10"/><ellipse cx="${FRONT + 28}" cy="76" rx="3.5" ry="10"/>
-    <ellipse cx="${BACK - 28}" cy="76" rx="3.5" ry="10"/><ellipse cx="${BACK + 28}" cy="76" rx="3.5" ry="10"/>`,
-  abdominals: `<rect x="${FRONT - 7}" y="52" width="14" height="30" rx="5"/>`,
-  quadriceps: `<ellipse cx="${FRONT - 9}" cy="110" rx="6.5" ry="20"/><ellipse cx="${FRONT + 9}" cy="110" rx="6.5" ry="20"/>`,
-  adductors: `<ellipse cx="${FRONT - 3}" cy="100" rx="2.5" ry="10"/><ellipse cx="${FRONT + 3}" cy="100" rx="2.5" ry="10"/>`,
-  abductors: `<ellipse cx="${FRONT - 16}" cy="96" rx="2.5" ry="8"/><ellipse cx="${FRONT + 16}" cy="96" rx="2.5" ry="8"/>`,
-  calves: `<ellipse cx="${FRONT - 9}" cy="160" rx="4.5" ry="13"/><ellipse cx="${FRONT + 9}" cy="160" rx="4.5" ry="13"/>
-    <ellipse cx="${BACK - 9}" cy="158" rx="5" ry="14"/><ellipse cx="${BACK + 9}" cy="158" rx="5" ry="14"/>`,
-  traps: `<path d="M${BACK - 14} 31 Q${BACK} 24 ${BACK + 14} 31 L${BACK + 6} 44 L${BACK - 6} 44 Z"/>`,
-  lats: `<ellipse cx="${BACK - 11}" cy="56" rx="6" ry="14"/><ellipse cx="${BACK + 11}" cy="56" rx="6" ry="14"/>`,
-  'middle back': `<rect x="${BACK - 5}" y="44" width="10" height="20" rx="3"/>`,
-  'lower back': `<rect x="${BACK - 8}" y="68" width="16" height="14" rx="4"/>`,
-  glutes: `<ellipse cx="${BACK - 8}" cy="96" rx="8.5" ry="9"/><ellipse cx="${BACK + 8}" cy="96" rx="8.5" ry="9"/>`,
-  hamstrings: `<ellipse cx="${BACK - 9}" cy="122" rx="6.5" ry="17"/><ellipse cx="${BACK + 9}" cy="122" rx="6.5" ry="17"/>`,
-  neck: `<rect x="${FRONT - 4}" y="23" width="8" height="6" rx="2"/>`
+  chest: pair(7, 44, 7.5, 6, [FRONT]),
+  shoulders: pair(20, 36, 5.5, 5.5, [FRONT, BACK]),
+  biceps: pair(23, 50, 3.5, 8, [FRONT]),
+  triceps: pair(23, 50, 3.5, 8, [BACK]),
+  forearms: pair(25.5, 76, 3, 10, [FRONT, BACK]),
+  abdominals: `<rect x="${FRONT - 6}" y="52" width="12" height="26" rx="5"/>`,
+  quadriceps: pair(8.5, 112, 6, 19, [FRONT]),
+  adductors: pair(2.5, 100, 2.2, 9, [FRONT]),
+  abductors: pair(15.5, 94, 2.5, 7, [FRONT]),
+  calves: pair(8.5, 160, 4.2, 13, [FRONT, BACK]),
+  traps: `<path d="M${BACK - 13} 32 Q${BACK} 26 ${BACK + 13} 32 L${BACK + 5} 44 L${BACK - 5} 44 Z"/>`,
+  lats: pair(10, 54, 5.5, 12, [BACK]),
+  'middle back': `<rect x="${BACK - 4.5}" y="44" width="9" height="18" rx="3"/>`,
+  'lower back': `<rect x="${BACK - 7}" y="66" width="14" height="13" rx="4"/>`,
+  glutes: pair(8.5, 94, 9, 9.5, [BACK]),
+  hamstrings: pair(8.5, 124, 6, 17, [BACK]),
+  neck: `<rect x="${FRONT - 3.5}" y="22" width="7" height="6" rx="2"/>`
 };
 
 function bodyMap(primary = [], secondary = []) {
   const group = (cls, list) => list.filter((m) => MUSCLE_SHAPES[m]).map((m) => `<g class="${cls}">${MUSCLE_SHAPES[m]}</g>`).join('');
   return `
     <svg class="bodymap" viewBox="0 0 180 192" role="img" aria-label="Muscles worked: ${esc([...primary, ...secondary].join(', '))}">
-      <g class="base">${BODY_BASE(FRONT)}${BODY_BASE(BACK)}</g>
+      <g class="base">${BODY_BASE(FRONT, false)}${BODY_BASE(BACK, true)}</g>
       <g class="idle">${Object.values(MUSCLE_SHAPES).join('')}</g>
       ${group('secondary', secondary)}
       ${group('primary', primary)}

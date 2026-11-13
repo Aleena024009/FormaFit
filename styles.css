@@ -519,6 +519,7 @@ dialog#sheet h3 { margin-top: 4px; }
 .ex-media .bodymap { width: 100%; max-width: 190px; }
 .bodymap { width: 100%; height: auto; display: block; }
 .bodymap .base { fill: var(--surface-2); }
+.bodymap .base .hair { fill: #6b5326; }
 .bodymap .idle { fill: var(--line); }
 .bodymap .secondary { fill: var(--frame); }
 .bodymap .primary { fill: var(--accent); animation: muscle-pulse 1.6s ease-in-out infinite; }
