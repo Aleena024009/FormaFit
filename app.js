@@ -627,9 +627,10 @@ function renderWorkout() {
       ${plan.exercises.map((e) => `
         <section class="card exercise">
           ${exerciseHeader(e)}
-          ${exerciseMedia(e.name)}
+          ${videoPlayer(e.name)}
+          ${muscleTags(e.name)}
         </section>`).join('')}
-      <p class="muted small center">You can tick off sets on the day. Tap an exercise name for step-by-step help.</p>`;
+      <p class="muted small center">You can tick off sets on the day. Tap ⓘ for step-by-step help.</p>`;
   } else {
     body = `
       ${done >= total ? '<section class="card done-banner"><h2>Workout complete ✓</h2><p class="muted small" style="margin:0">Great job. Drink water and eat some protein.</p></section>' : ''}
@@ -639,7 +640,8 @@ function renderWorkout() {
         return `
           <section class="card exercise ${count >= sets ? 'complete' : ''}">
             ${exerciseHeader(e)}
-            ${exerciseMedia(e.name)}
+            ${videoPlayer(e.name)}
+            ${muscleTags(e.name)}
             <div class="row">
               <label class="weight">
                 <input type="number" inputmode="decimal" min="0" step="0.5" data-weight="${i}" value="${lastWeight(e.name)}" placeholder="0" aria-label="Weight for ${esc(e.name)} in kg">
@@ -653,7 +655,7 @@ function renderWorkout() {
             </div>
           </section>`;
       }).join('')}
-      <p class="muted small center">Tap a number when you finish that set. Tap an exercise name for step-by-step help.</p>`;
+      <p class="muted small center">Tap a number when you finish that set. Tap ⓘ for step-by-step help.</p>`;
   }
 
   $('#view').innerHTML = `
@@ -940,6 +942,27 @@ function bodyMap(primary = [], secondary = []) {
 
 const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 
+// Tap-to-play video. Only a thumbnail loads until it's tapped, so the list stays light.
+function videoPlayer(name) {
+  const id = VIDEOS[name];
+  if (!id) return '';
+  return `
+    <button type="button" class="video" data-act="play" data-video="${id}" aria-label="Play ${esc(name)} demo video">
+      <img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="">
+      <span class="play-btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></span>
+    </button>`;
+}
+
+function muscleTags(name) {
+  const demo = demoFor(name);
+  if (!demo?.muscles.length) return '';
+  return `
+    <div class="muscles">
+      ${demo.muscles.map((m) => `<span class="tag primary">${titleCase(m)}</span>`).join('')}
+      ${demo.secondary.map((m) => `<span class="tag">${titleCase(m)}</span>`).join('')}
+    </div>`;
+}
+
 // Body map of the muscles worked, with the muscle names below.
 function exerciseMedia(name, withSteps = true) {
   const demo = demoFor(name);
@@ -975,9 +998,12 @@ function exerciseHeader(e) {
   return `
     <div class="row between">
       <div class="grow">
-        <button type="button" class="ex-title" data-act="demo" data-name="${esc(e.name)}" data-detail="${esc(setsReps(e))}">${esc(e.name)}</button>
+        <h3 class="ex-title">${esc(e.name)}</h3>
         <div class="muted small">${e.sets ? `${e.sets} sets × ${esc(e.reps)}` : ''}</div>
       </div>
+      <button type="button" class="video-link info" data-act="demo" data-name="${esc(e.name)}" data-detail="${esc(setsReps(e))}" aria-label="How to do ${esc(e.name)}" title="How to do it">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" class="outline"/><path class="stroke" d="M12 11v6"/><circle cx="12" cy="7.5" r="1.3" class="dot"/></svg>
+      </button>
       ${videoLinks(e.name)}
     </div>`;
 }
@@ -1423,6 +1449,16 @@ document.addEventListener('click', (e) => {
       d.sleep = Math.min(14, Math.max(0, d.sleep == null ? start : start + Number(el.dataset.step)));
       save();
       renderToday();
+      break;
+    }
+    case 'play': {
+      const frame = document.createElement('iframe');
+      frame.className = 'video';
+      frame.src = `https://www.youtube-nocookie.com/embed/${el.dataset.video}?autoplay=1&rel=0&playsinline=1`;
+      frame.title = 'Exercise demo video';
+      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      frame.allowFullscreen = true;
+      el.replaceWith(frame);
       break;
     }
     case 'workout-day':

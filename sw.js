@@ -1,4 +1,4 @@
-const CACHE = 'formafit-v16';
+const CACHE = 'formafit-v17';
 const SHELL = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const SHELL = [
   './app.js',
   './programs.js',
   './demos.js',
+  './videos.js',
   './meals.js',
   './sync.js',
   './firebase-config.js',

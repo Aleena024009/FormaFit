@@ -545,3 +545,35 @@ dialog#sheet h3 { margin-top: 4px; }
 .exercise .video-link { width: 36px; height: 36px; }
 .howto > summary { color: var(--accent); font-weight: 600; font-size: .9rem; }
 .howto[open] > summary { margin-bottom: 8px; }
+
+/* Embedded demo video */
+.video {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+.video img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.play-btn {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, .75);
+  border: 2px solid var(--accent);
+  display: grid;
+  place-items: center;
+}
+.play-btn svg { width: 26px; height: 26px; fill: var(--accent); margin-left: 3px; }
+h3.ex-title { margin: 0; }
+h3.ex-title::after { content: none; }
+.video-link .stroke { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+button.video-link { padding: 0; min-height: 0; }
