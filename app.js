@@ -217,6 +217,10 @@ function greeting() {
 }
 
 window.addEventListener('hashchange', route);
+// Swap exercise demos between video and muscle map as the connection changes.
+['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => {
+  if ((location.hash.slice(1) || 'today') === 'workout' && state.profile) renderWorkout();
+}));
 
 /* ---------- Sheet ---------- */
 
@@ -947,7 +951,11 @@ const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 // start/end photos. Tapping it plays the full video in place.
 function videoPlayer(name) {
   const id = VIDEOS[name];
-  if (!id) return '';
+  // Demos stream from YouTube; offline, show the muscle map (stored in the app) instead.
+  if (!id || !navigator.onLine) {
+    const demo = demoFor(name);
+    return demo?.muscles.length ? `<div class="ex-media">${bodyMap(demo.muscles, demo.secondary)}</div>` : '';
+  }
   const frames = VIDEO_FRAMES[name] || [1, 2, 3];
   return `
     <button type="button" class="video frames frames-${frames.length}" data-act="play" data-video="${id}" aria-label="${esc(name)} demo. Tap to play the video.">
