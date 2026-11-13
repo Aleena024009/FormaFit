@@ -560,19 +560,20 @@ dialog#sheet h3 { margin-top: 4px; }
   background: #000;
 }
 .video img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.play-btn {
+.video.gif img { position: absolute; inset: 0; }
+/* Behaves like a GIF: no taps, slightly zoomed to crop YouTube's title bar. */
+.video.gif iframe {
   position: absolute;
   inset: 0;
-  margin: auto;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(10, 10, 10, .75);
-  border: 2px solid var(--accent);
-  display: grid;
-  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+  transform: scale(1.18);
+  opacity: 0;
+  transition: opacity .4s;
 }
-.play-btn svg { width: 26px; height: 26px; fill: var(--accent); margin-left: 3px; }
+.video.gif iframe.playing { opacity: 1; }
 h3.ex-title { margin: 0; }
 h3.ex-title::after { content: none; }
 .video-link .stroke { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }

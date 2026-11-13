@@ -686,6 +686,7 @@ function renderWorkout() {
       <button class="ghost" data-act="sheet-tips">Tips</button>
     </div>
   `;
+  watchGifs();
 }
 
 function toggleSet(i, n) {
@@ -942,15 +943,52 @@ function bodyMap(primary = [], secondary = []) {
 
 const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 
-// Tap-to-play video. Only a thumbnail loads until it's tapped, so the list stays light.
+// GIF-style demo: the thumbnail shows until the card is on screen, then the
+// video plays muted on a loop with no controls (see watchGifs).
 function videoPlayer(name) {
   const id = VIDEOS[name];
   if (!id) return '';
   return `
-    <button type="button" class="video" data-act="play" data-video="${id}" aria-label="Play ${esc(name)} demo video">
+    <div class="video gif" data-video="${id}" role="img" aria-label="${esc(name)} demo">
       <img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="">
-      <span class="play-btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></span>
-    </button>`;
+    </div>`;
+}
+
+let gifObserver = null;
+
+// The thumbnail stays visible until YouTube says the video is playing
+// (playerState 1), so a blocked autoplay never leaves a black box.
+window.addEventListener('message', (e) => {
+  if (!/youtube(-nocookie)?\.com$/.test(new URL(e.origin).hostname)) return;
+  let data;
+  try { data = JSON.parse(e.data); } catch { return; }
+  if (data?.info?.playerState !== 1) return;
+  const frame = $$('.video.gif iframe').find((f) => f.contentWindow === e.source);
+  if (frame) frame.classList.add('playing');
+});
+
+// Only cards in view play, so a long workout doesn't run six videos at once.
+function watchGifs() {
+  if (gifObserver) gifObserver.disconnect();
+  if (!('IntersectionObserver' in window)) return;
+  gifObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
+    const box = entry.target;
+    const frame = box.querySelector('iframe');
+    if (entry.isIntersecting && !frame) {
+      const id = box.dataset.video;
+      const f = document.createElement('iframe');
+      f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&playsinline=1&rel=0&disablekb=1&iv_load_policy=3&enablejsapi=1`;
+      f.title = box.getAttribute('aria-label');
+      f.allow = 'autoplay; encrypted-media';
+      f.tabIndex = -1;
+      // Ask the player to report its state; it fades in once it is playing.
+      f.addEventListener('load', () => f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id }), '*'));
+      box.appendChild(f);
+    } else if (!entry.isIntersecting && frame) {
+      frame.remove();
+    }
+  }), { threshold: 0.5 });
+  $$('.video.gif').forEach((el) => gifObserver.observe(el));
 }
 
 function muscleTags(name) {
@@ -1449,16 +1487,6 @@ document.addEventListener('click', (e) => {
       d.sleep = Math.min(14, Math.max(0, d.sleep == null ? start : start + Number(el.dataset.step)));
       save();
       renderToday();
-      break;
-    }
-    case 'play': {
-      const frame = document.createElement('iframe');
-      frame.className = 'video';
-      frame.src = `https://www.youtube-nocookie.com/embed/${el.dataset.video}?autoplay=1&rel=0&playsinline=1`;
-      frame.title = 'Exercise demo video';
-      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-      frame.allowFullscreen = true;
-      el.replaceWith(frame);
       break;
     }
     case 'workout-day':
