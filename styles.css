@@ -541,3 +541,7 @@ dialog#sheet h3 { margin-top: 4px; }
   color: var(--muted);
 }
 .tag.primary { border-color: var(--accent); color: var(--accent); }
+
+.exercise .video-link { width: 36px; height: 36px; }
+.howto > summary { color: var(--accent); font-weight: 600; font-size: .9rem; }
+.howto[open] > summary { margin-bottom: 8px; }

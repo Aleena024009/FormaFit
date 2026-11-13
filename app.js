@@ -941,7 +941,7 @@ function bodyMap(primary = [], secondary = []) {
 const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 
 // Body map of the muscles worked, with the muscle names below.
-function exerciseMedia(name) {
+function exerciseMedia(name, withSteps = true) {
   const demo = demoFor(name);
   if (!demo?.muscles.length) return '';
   return `
@@ -949,34 +949,47 @@ function exerciseMedia(name) {
     <div class="muscles">
       ${demo.muscles.map((m) => `<span class="tag primary">${titleCase(m)}</span>`).join('')}
       ${demo.secondary.map((m) => `<span class="tag">${titleCase(m)}</span>`).join('')}
-    </div>`;
+    </div>
+    ${withSteps && demo.steps.length ? `
+      <details class="howto">
+        <summary>How to do it</summary>
+        <ol class="steps">${demo.steps.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>
+      </details>` : ''}`;
+}
+
+// YouTube and Instagram searches for women demonstrating the exercise.
+function videoLinks(name) {
+  const youtube = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} women proper form`)}`;
+  const reels = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(`${name} women form`)}`;
+  return `
+    <a class="video-link" href="${youtube}" target="_blank" rel="noopener" aria-label="Watch ${esc(name)} on YouTube" title="YouTube">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path class="glyph" d="M10 9l5 3-5 3z"/></svg>
+    </a>
+    <a class="video-link" href="${reels}" target="_blank" rel="noopener" aria-label="Watch ${esc(name)} reels on Instagram" title="Instagram">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" class="outline"/><circle cx="12" cy="12" r="4" class="outline"/><circle cx="17.3" cy="6.7" r="1.2" class="dot"/></svg>
+    </a>`;
 }
 
 // Card header: the exercise name opens the step-by-step sheet.
 function exerciseHeader(e) {
   return `
     <div class="row between">
-      <button type="button" class="ex-title grow" data-act="demo" data-name="${esc(e.name)}" data-detail="${esc(setsReps(e))}">${esc(e.name)}</button>
-      <span class="muted small">${e.sets ? `${e.sets} × ${esc(e.reps)}` : ''}</span>
+      <div class="grow">
+        <button type="button" class="ex-title" data-act="demo" data-name="${esc(e.name)}" data-detail="${esc(setsReps(e))}">${esc(e.name)}</button>
+        <div class="muted small">${e.sets ? `${e.sets} sets × ${esc(e.reps)}` : ''}</div>
+      </div>
+      ${videoLinks(e.name)}
     </div>`;
 }
 
 function showDemo(name, detail) {
   const demo = demoFor(name);
-  const reels = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(`${name} form`)}`;
-  const youtube = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} exercise proper form`)}`;
   openSheet(esc(name), `
     ${detail ? `<span class="pill">${esc(detail)}</span>` : ''}
-    ${exerciseMedia(name)}
+    ${exerciseMedia(name, false)}
     ${demo?.steps.length ? `<ol class="steps">${demo.steps.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>`
       : '<p class="empty">No written steps for this exercise yet. Watch a video instead.</p>'}
-    `, null, `
-    <a class="video-link" href="${youtube}" target="_blank" rel="noopener" aria-label="Watch ${esc(name)} videos on YouTube" title="YouTube">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path class="glyph" d="M10 9l5 3-5 3z"/></svg>
-    </a>
-    <a class="video-link" href="${reels}" target="_blank" rel="noopener" aria-label="Watch ${esc(name)} reels on Instagram" title="Instagram">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" class="outline"/><circle cx="12" cy="12" r="4" class="outline"/><circle cx="17.3" cy="6.7" r="1.2" class="dot"/></svg>
-    </a>`);
+    `, null, videoLinks(name));
 }
 
 /* ---------- Progress ---------- */
