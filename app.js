@@ -938,24 +938,16 @@ function bodyMap(primary = [], secondary = []) {
 
 const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 
-// Moving start/end photos beside a body map, with the muscle names below.
+// Body map of the muscles worked, with the muscle names below.
 function exerciseMedia(name) {
   const demo = demoFor(name);
-  if (!demo) return '';
+  if (!demo?.muscles.length) return '';
   return `
-    <div class="ex-media ${demo.id ? '' : 'no-photo'}">
-      ${demo.id ? `
-        <div class="demo-anim" role="img" aria-label="${esc(name)}: start and end position">
-          <img src="demos/${demo.id}/0.jpg" alt="">
-          <img src="demos/${demo.id}/1.jpg" alt="" class="end">
-        </div>` : ''}
-      ${bodyMap(demo.muscles, demo.secondary)}
-    </div>
-    ${demo.muscles.length ? `
-      <div class="muscles">
-        ${demo.muscles.map((m) => `<span class="tag primary">${titleCase(m)}</span>`).join('')}
-        ${demo.secondary.map((m) => `<span class="tag">${titleCase(m)}</span>`).join('')}
-      </div>` : ''}`;
+    <div class="ex-media">${bodyMap(demo.muscles, demo.secondary)}</div>
+    <div class="muscles">
+      ${demo.muscles.map((m) => `<span class="tag primary">${titleCase(m)}</span>`).join('')}
+      ${demo.secondary.map((m) => `<span class="tag">${titleCase(m)}</span>`).join('')}
+    </div>`;
 }
 
 // Card header: the exercise name opens the step-by-step sheet.

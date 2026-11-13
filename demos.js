@@ -1,6 +1,6 @@
 'use strict';
 
-// Exercise demos: two photos (start/end), steps and muscles worked from free-exercise-db (Unlicense, public domain).
+// Exercise steps and muscles worked from free-exercise-db (Unlicense, public domain).
 // https://github.com/yuhonas/free-exercise-db
 const DEMOS = {
  "Air Squats": {

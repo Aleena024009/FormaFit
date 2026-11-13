@@ -20,4 +20,4 @@ Host the folder on any HTTPS static host (GitHub Pages, Netlify, Vercel). Then o
 
 ## Credits
 
-Exercise demo photos and instructions are from [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense, public domain).
+Exercise instructions and muscle data are from [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense, public domain).

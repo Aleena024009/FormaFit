@@ -292,18 +292,6 @@ dialog#sheet[open] { display: grid; gap: 12px; grid-auto-rows: max-content; alig
 dialog#sheet::backdrop { background: rgba(0, 0, 0, .75); }
 dialog#sheet .pill { justify-self: start; }
 
-.demo-anim { position: relative; aspect-ratio: 3 / 2; border-radius: 12px; overflow: hidden; background: #000; }
-.demo-anim img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.demo-anim img.end { animation: demo-swap 2s ease-in-out infinite; }
-@keyframes demo-swap {
-  0%, 35% { opacity: 0; }
-  50%, 85% { opacity: 1; }
-  100% { opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .demo-anim img.end { animation-duration: 6s; }
-}
-
 .steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: .9rem; color: var(--text); }
 .steps li::marker { color: var(--accent); font-weight: 700; }
 
@@ -527,17 +515,14 @@ dialog#sheet h3 { margin-top: 4px; }
 }
 .ex-title::after { content: " ›"; color: var(--accent); }
 
-.ex-media { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 10px; align-items: center; }
-.ex-media.no-photo { grid-template-columns: minmax(0, 1fr); justify-items: center; }
-.ex-media.no-photo .bodymap { max-width: 180px; }
-.ex-media .demo-anim { border-radius: 10px; }
-
+.ex-media { display: flex; justify-content: center; padding: 4px 0; background: var(--bg); border-radius: 12px; }
+.ex-media .bodymap { width: 100%; max-width: 190px; }
 .bodymap { width: 100%; height: auto; display: block; }
 .bodymap .base { fill: var(--surface-2); }
 .bodymap .idle { fill: var(--line); }
 .bodymap .secondary { fill: var(--frame); }
 .bodymap .primary { fill: var(--accent); animation: muscle-pulse 1.6s ease-in-out infinite; }
-.bodymap text { fill: var(--muted); font-size: 9px; text-anchor: middle; }
+.bodymap text { fill: var(--muted); font-size: 8px; text-anchor: middle; }
 @keyframes muscle-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: .45; }
