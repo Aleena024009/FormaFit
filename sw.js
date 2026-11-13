@@ -1,4 +1,4 @@
-const CACHE = 'formafit-v18';
+const CACHE = 'formafit-v19';
 const SHELL = [
   './',
   './index.html',

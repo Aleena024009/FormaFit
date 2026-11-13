@@ -1,7 +1,9 @@
 'use strict';
 
 // YouTube video id per exercise: short form demos, mostly by women coaches.
-// They play embedded in the exercise cards (youtube-nocookie.com).
+// Cards fade between YouTube's still frames from the video; tapping plays it
+// embedded (youtube-nocookie.com). VIDEO_FRAMES lists which frames to use
+// where some are title cards; the default is all three.
 const VIDEOS = {
  "Air Squats": "NGttLyYktTw",
  "Arnold Press": "TUHL8dXFvTg",
@@ -75,4 +77,23 @@ const VIDEOS = {
  "Tricep Rope Pushdown": "IoAP0xQtROk",
  "Walking Lunges": "whwwIax9RRc",
  "Weighted Dips": "y4gHJ8OjxTg"
+};
+
+const VIDEO_FRAMES = {
+  'Bench Press': [1, 2],
+  'Cable Lateral Raise': [1, 2],
+  'Calf Machine': [1, 3],
+  'Calf Raise': [1, 3],
+  'Chest Press': [1, 2],
+  'Dead Bug': [2, 3],
+  'Dumbbell Biceps Curl': [2, 3],
+  'Easy treadmill walk': [1, 2],
+  'Flat Bench Press': [1, 2],
+  'Glute Bridge': [1, 2],
+  'Lateral Raise': [1, 2],
+  'Seated Calf Raise': [1, 3],
+  'Shoulder Press': [2, 3],
+  'Standing Calf Raise': [1, 3],
+  'Tricep Pushdown': [1, 2],
+  'Tricep Rope Pushdown': [1, 2]
 };
