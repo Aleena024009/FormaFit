@@ -97,3 +97,29 @@ const VIDEO_FRAMES = {
   'Tricep Pushdown': [1, 2],
   'Tricep Rope Pushdown': [1, 2]
 };
+
+// Seconds [start, end] where each video shows the reps; that part loops muted
+// on the card like a GIF. Videos not listed fall back to fading frames.
+const VIDEO_CLIPS = {
+  'xRTMjjZ76GI': [1, 15],
+  'YwrzZaNqJWU': [7, 43],
+  '6tW4LUaOxlE': [4, 34],
+  '8fMad4bSZmg': [14, 24],
+  'JAA855alyw4': [76, 126],
+  'IoAP0xQtROk': [32, 98],
+  'AtcrCtnah98': [26, 32],
+  'uZ0r6iYcLwo': [1, 27],
+  'fFmwY2dA2ds': [32, 68],
+  'wnPX6Fwe-Fg': [80, 126],
+  'sYV-ki-1blM': [94, 112],
+  'n1MQcwTN7YQ': [94, 140],
+  'MAbThtU8Sis': [23, 34],
+  'OUgsJ8-Vi0E': [62, 78],
+  '-M4-G8p8fmc': [92, 108],
+  'GbSC02oU3To': [15, 58],
+  'u6ZelKyUM6g': [45, 51],
+  '5WxMW-Fu5KU': [11, 26],
+  'jkJkmy8IHXU': [56, 106],
+  'csNeUKYBW0E': [290, 315],
+  'Ef6LwAaB3_E': [195, 310]
+};

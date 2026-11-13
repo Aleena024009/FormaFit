@@ -686,6 +686,7 @@ function renderWorkout() {
       <button class="ghost" data-act="sheet-tips">Tips</button>
     </div>
   `;
+  watchClips();
 }
 
 function toggleSet(i, n) {
@@ -951,9 +952,57 @@ function videoPlayer(name) {
   return `
     <button type="button" class="video frames frames-${frames.length}" data-act="play" data-video="${id}" aria-label="${esc(name)} demo. Tap to play the video.">
       ${frames.map((n) => `<img src="https://i.ytimg.com/vi/${id}/hq${n}.jpg" alt="">`).join('')}
+      ${VIDEO_CLIPS[id] ? '<span class="clip" aria-hidden="true"></span>' : ''}
       <span class="tap-hint">▶ Tap for video</span>
     </button>`;
 }
+
+let clipObserver = null;
+
+// The clip loops muted while its card is on screen and is dropped when it
+// scrolls away. The frames underneath show until YouTube reports playing.
+function watchClips() {
+  if (clipObserver) clipObserver.disconnect();
+  if (!('IntersectionObserver' in window)) return;
+  clipObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
+    const slot = entry.target;
+    const id = slot.closest('[data-video]').dataset.video;
+    const frame = slot.querySelector('iframe');
+    if (entry.isIntersecting && !frame) {
+      const [start, end] = VIDEO_CLIPS[id];
+      const f = document.createElement('iframe');
+      f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&controls=0&playsinline=1&rel=0&disablekb=1&iv_load_policy=3&start=${start}&end=${end}&enablejsapi=1`;
+      f.title = 'Exercise demo';
+      f.allow = 'autoplay; encrypted-media';
+      f.tabIndex = -1;
+      f.dataset.start = start;
+      f.addEventListener('load', () => f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id }), '*'));
+      slot.appendChild(f);
+    } else if (!entry.isIntersecting && frame) {
+      frame.remove();
+    }
+  }), { threshold: 0.5 });
+  $$('.video .clip').forEach((el) => clipObserver.observe(el));
+}
+
+// Player states: 1 playing, 0 ended. On end, jump back to the clip start.
+window.addEventListener('message', (e) => {
+  let host;
+  try { host = new URL(e.origin).hostname; } catch { return; }
+  if (!/(^|\.)youtube(-nocookie)?\.com$/.test(host)) return;
+  let data;
+  try { data = JSON.parse(e.data); } catch { return; }
+  const state = data?.info?.playerState;
+  if (state !== 0 && state !== 1) return;
+  const frame = $$('.video .clip iframe').find((f) => f.contentWindow === e.source);
+  if (!frame) return;
+  if (state === 1) frame.classList.add('playing');
+  else {
+    const send = (func, args = []) => frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+    send('seekTo', [Number(frame.dataset.start), true]);
+    send('playVideo');
+  }
+});
 
 function muscleTags(name) {
   const demo = demoFor(name);
