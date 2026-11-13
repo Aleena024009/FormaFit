@@ -1,7 +1,39 @@
 'use strict';
 
 // Push Pull Legs templates. Each exercise is [name, sets, reps].
+// A program with `week` (Sunday first) and `labels` sets its own days and
+// day names instead of using SCHEDULES; `phases` and `rules` are optional.
 const PROGRAMS = [
+  {
+    id: 'boxom',
+    name: 'BOXOM 8-Week Plan',
+    about: 'Your coach\'s plan: Push, Pull, Legs, a light recovery day and a full-body day. 2 sets each, light weights.',
+    labels: { push: 'Push', pull: 'Pull', legs: 'Legs + Core', recovery: 'Recovery', full: 'Full Body' },
+    week: [null, 'push', 'pull', 'legs', 'recovery', 'full', null],
+    weekDetail: 'Mon to Fri, weekends rest',
+    push: [['Chest Press', 2, '10-12'], ['Incline Dumbbell Press', 2, '10'], ['Shoulder Press', 2, '10'], ['Lateral Raise', 2, '12'], ['Tricep Pushdown', 2, '12']],
+    pull: [['Lat Pulldown', 2, '10-12'], ['Seated Cable Row', 2, '10-12'], ['One-arm Dumbbell Row', 2, '10 each side'], ['Face Pull', 2, '12-15'], ['Dumbbell Biceps Curl', 2, '12']],
+    legs: [['Goblet Squat', 2, '10-12'], ['Leg Press', 2, '12'], ['Leg Curl', 2, '12'], ['Glute Bridge', 2, '12-15'], ['Calf Raise', 2, '15'], ['Dead Bug', 2, '8-10 each side']],
+    recovery: [['Easy treadmill walk', 1, '10-15 min'], ['Easy cycling', 1, '5-10 min'], ['Mobility and stretching', 1, '5-10 min']],
+    full: [['Goblet Squat', 2, '10'], ['Chest Press', 2, '10'], ['Lat Pulldown', 2, '10'], ['Dumbbell Romanian Deadlift', 2, '10'], ['Glute Bridge', 2, '12'], ['Plank', 2, '15-25 sec']],
+    phases: [
+      [1, 2, 'Learn machine setup, posture, breathing and technique. Light weights, 2 sets.'],
+      [3, 4, 'Build consistency and controlled reps. Don\'t add weight if form isn\'t steady.'],
+      [5, 6, 'If technique is good, add a little weight or 1–2 reps on some exercises.'],
+      [7, 8, 'Keep good form, progress gradually, and review strength, stamina and sleep.']
+    ],
+    rules: [
+      'Warm up with 5–7 minutes of easy walking or cycling first. Keep it light enough to talk.',
+      'Rest about 60–90 seconds between sets, longer if you need it.',
+      'Stop each set with 2–3 good reps still left. No training to failure.',
+      'Add weight only when you can do every rep with steady form and no pain.',
+      'Day 4 is easy on purpose. It is recovery, not a hard workout.',
+      'If you only get 3 days in a week, do Push, Pull, Legs in order and continue from there next time.',
+      'Stop for sharp pain, dizziness, chest discomfort or unusual breathlessness.',
+      'Ask your coach to watch the Romanian deadlift and other free-weight lifts.',
+      'Lift what is right for you. Don\'t match anyone else\'s weights.'
+    ]
+  },
   {
     id: 'beginner',
     name: 'Beginner PPL',

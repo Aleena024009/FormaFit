@@ -148,6 +148,15 @@ const DEMOS = {
    "Repeat for the recommended amount of repetitions."
   ]
  },
+ "Chest Press": {
+  "id": "Leverage_Chest_Press",
+  "steps": [
+   "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the bottom or middle of the pectorals at the beginning of the motion.",
+   "Your chest and head should be up and your shoulder blades retracted. This will be your starting position.",
+   "Press the handles forward by extending through the elbow.",
+   "After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete."
+  ]
+ },
  "Chest Press Machine": {
   "id": "Leverage_Chest_Press",
   "steps": [
@@ -168,6 +177,18 @@ const DEMOS = {
    "Repeat for the recommended amount of repetitions."
   ]
  },
+ "Dead Bug": {
+  "id": "Dead_Bug",
+  "steps": [
+   "Begin lying on your back with your hands extended above you toward the ceiling.",
+   "Bring your feet, knees, and hips up to 90 degrees.",
+   "Exhale hard to bring your ribcage down and flatten your back onto the floor, rotating your pelvis up and squeezing your glutes. Hold this position throughout the movement. This will be your starting position.",
+   "Initiate the exercise by extending one leg, straightening the knee and hip to bring the leg just above the ground.",
+   "Maintain the position of your lumbar and pelvis as you perform the movement, as your back is going to want to arch.",
+   "Stay tight and return the working leg to the starting position.",
+   "Repeat on the opposite side, alternating until the set is complete."
+  ]
+ },
  "Deadlift": {
   "id": "Barbell_Deadlift",
   "steps": [
@@ -178,6 +199,25 @@ const DEMOS = {
    "Perform the amount of repetitions prescribed in the program."
   ]
  },
+ "Dumbbell Biceps Curl": {
+  "id": "Dumbbell_Bicep_Curl",
+  "steps": [
+   "Stand up straight with a dumbbell in each hand at arm's length. Keep your elbows close to your torso and rotate the palms of your hands until they are facing forward. This will be your starting position.",
+   "Now, keeping the upper arms stationary, exhale and curl the weights while contracting your biceps. Continue to raise the weights until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a brief pause as you squeeze your biceps.",
+   "Then, inhale and slowly begin to lower the dumbbells back to the starting position.",
+   "Repeat for the recommended amount of repetitions."
+  ]
+ },
+ "Dumbbell Romanian Deadlift": {
+  "id": "Stiff-Legged_Dumbbell_Deadlift",
+  "steps": [
+   "Grasp a couple of dumbbells holding them by your side at arm's length.",
+   "Stand with your torso straight and your legs spaced using a shoulder width or narrower stance. The knees should be slightly bent. This is your starting position.",
+   "Keeping the knees stationary, lower the dumbbells to over the top of your feet by bending at the waist while keeping your back straight. Keep moving forward as if you were going to pick something from the floor until you feel a stretch on the hamstrings. Exhale as you perform this movement",
+   "Start bringing your torso up straight again by extending your hips and waist until you are back at the starting position. Inhale as you perform this movement.",
+   "Repeat for the recommended amount of repetitions."
+  ]
+ },
  "EZ Bar Curl": {
   "id": "EZ-Bar_Curl",
   "steps": [
@@ -186,6 +226,20 @@ const DEMOS = {
    "Continue to raise the weight until your biceps are fully contracted and the bar is at shoulder level. Hold the top contracted position for a moment and squeeze the biceps.",
    "Then inhale and slowly lower the bar back to the starting position.",
    "Repeat for the recommended amount of repetitions."
+  ]
+ },
+ "Easy cycling": {
+  "id": "Bicycling_Stationary",
+  "steps": [
+   "To begin, seat yourself on the bike and adjust the seat to your height.",
+   "Select the desired option from the menu. You may have to start pedaling to turn it on. You can use the manual setting, or you can select a program to use. Typically, you can enter your age and weight to estimate the amount of calories burned during exercise. The level of resistance can be changed throughout the workout. The handles can be used to monitor your heart rate to help you stay at an appropriate intensity."
+  ]
+ },
+ "Easy treadmill walk": {
+  "id": "Walking_Treadmill",
+  "steps": [
+   "To begin, step onto the treadmill and select the desired option from the menu. Most treadmills have a manual setting, or you can select a program to run. Typically, you can enter your age and weight to estimate the amount of calories burned during exercise. Elevation can be adjusted to change the intensity of the workout.",
+   "Treadmills offer convenience, cardiovascular benefits, and usually have less impact than walking outside. When walking, you should move at a moderate to fast pace, not a leisurely one. Being an activity of lower intensity, walking doesn't burn as many calories as some other activities, but still provides great benefit. A 150 lb person will burn about 175 calories walking 4 miles per hour for 30 minutes, compared to 450 calories running twice as fast. Maintain proper posture as you walk, and only hold onto the handles when necessary, such as when dismounting or checking your heart rate."
   ]
  },
  "Face Pull": {
@@ -210,6 +264,14 @@ const DEMOS = {
    "Lie flat on the floor on your back with the hands by your side and your knees bent. Your feet should be placed around shoulder width. This will be your starting position.",
    "Pushing mainly with your heels, lift your hips off the floor while keeping your back straight. Breathe out as you perform this part of the motion and hold at the top for a second.",
    "Slowly go back to the starting position as you breathe in."
+  ]
+ },
+ "Goblet Squat": {
+  "id": "Goblet_Squat",
+  "steps": [
+   "Stand holding a light kettlebell by the horns close to your chest. This will be your starting position.",
+   "Squat down between your legs until your hamstrings are on your calves. Keep your chest and head up and your back straight.",
+   "At the bottom position, pause and use your elbows to push your knees out. Return to the starting position, and repeat for 10-20 repetitions."
   ]
  },
  "Hack Squat": {
@@ -383,6 +445,18 @@ const DEMOS = {
    "Repeat for the recommended amount of repetitions."
   ]
  },
+ "One-arm Dumbbell Row": {
+  "id": "One-Arm_Dumbbell_Row",
+  "steps": [
+   "Choose a flat bench and place a dumbbell on each side of it.",
+   "Place the right leg on top of the end of the bench, bend your torso forward from the waist until your upper body is parallel to the floor, and place your right hand on the other end of the bench for support.",
+   "Use the left hand to pick up the dumbbell on the floor and hold the weight while keeping your lower back straight. The palm of the hand should be facing your torso. This will be your starting position.",
+   "Pull the resistance straight up to the side of your chest, keeping your upper arm close to your side and keeping the torso stationary. Breathe out as you perform this step. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. Also, make sure that the force is performed with the back muscles and not the arms. Finally, the upper torso should remain stationary and only the arms should move. The forearms should do no other work except for holding the dumbbell; therefore do not try to pull the dumbbell up using the forearms.",
+   "Lower the resistance straight down to the starting position. Breathe in as you perform this step.",
+   "Repeat the movement for the specified amount of repetitions.",
+   "Switch sides and repeat again with the other arm."
+  ]
+ },
  "Pec Deck": {
   "id": "Butterfly",
   "steps": [
@@ -391,6 +465,13 @@ const DEMOS = {
    "Push the handles together slowly as you squeeze your chest in the middle. Breathe out during this part of the motion and hold the contraction for a second.",
    "Return back to the starting position slowly as you inhale until your chest muscles are fully stretched.",
    "Repeat for the recommended amount of repetitions."
+  ]
+ },
+ "Plank": {
+  "id": "Plank",
+  "steps": [
+   "Get into a prone position on the floor, supporting your weight on your toes and your forearms. Your arms are bent and directly below the shoulder.",
+   "Keep your body straight at all times, and hold this position as long as possible. To increase difficulty, an arm or leg can be raised."
   ]
  },
  "Preacher Curl": {

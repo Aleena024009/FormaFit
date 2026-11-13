@@ -567,6 +567,9 @@ function lastWeight(name) {
   return done.length ? done[0].weight : '';
 }
 
+// Short day name for the week strip: "Legs + Core" → "Legs", "Recovery" → "Recov".
+const chipLabel = (focus) => (focus || 'Gym').split(/[\s+]/)[0].slice(0, 5);
+
 // Days ahead of today shown in the Workout tab (0 = today).
 let workoutOffset = 0;
 
@@ -587,6 +590,7 @@ function renderWorkout() {
   const dayIdx = (todayIdx + workoutOffset) % 7;
   const plan = state.plan[dayIdx];
   const current = PROGRAMS.find((p) => p.id === state.programId);
+  const phase = programPhase(current);
   const total = plan.exercises.reduce((s, e) => s + (e.sets || 1), 0);
   const done = isToday ? plan.exercises.reduce((s, e) => s + Math.min(setsToday(e.name).length, e.sets || 1), 0) : 0;
   const date = new Date();
@@ -605,7 +609,7 @@ function renderWorkout() {
           <button role="tab" aria-selected="${off === workoutOffset}" class="day-chip ${off === workoutOffset ? 'on' : ''} ${p.exercises.length ? '' : 'rest'}" data-act="workout-day" data-off="${off}">
             <span class="small">${off === 0 ? 'Today' : DAYS[idx].slice(0, 3)}</span>
             <strong>${d.getDate()}</strong>
-            <span class="small">${p.exercises.length ? esc(p.focus || 'Gym') : 'Rest'}</span>
+            <span class="small">${p.exercises.length ? esc(chipLabel(p.focus)) : 'Rest'}</span>
           </button>`;
       }).join('')}
     </div>`;
@@ -665,6 +669,13 @@ function renderWorkout() {
         <div class="muted small">${done} of ${total} sets done</div>` : `
         <div class="muted small">${plan.exercises.length} exercises · ${total} sets</div>`) : ''}
     </section>
+
+    ${phase ? `
+    <section class="card phase">
+      <div class="row between"><strong>Week ${Math.min(phase.week, phase.total)} of ${phase.total}</strong>${phase.week > phase.total ? '<span class="pill ok">Done</span>' : ''}</div>
+      <div class="bar"><span style="width:${Math.min(phase.week / phase.total, 1) * 100}%"></span></div>
+      <div class="muted small">${phase.text}</div>
+    </section>` : ''}
 
     ${body}
 
@@ -764,23 +775,41 @@ function openHistorySheet() {
 }
 
 function openTipsSheet() {
+  const current = PROGRAMS.find((p) => p.id === state.programId);
   openSheet('Training tips', `
+    ${current?.rules ? `
+      <h3>${esc(current.name)}: coach's rules</h3>
+      <ol class="steps">${current.rules.map((r) => `<li>${esc(r)}</li>`).join('')}</ol>
+      <h3>General tips</h3>` : ''}
     <ul class="list">${TRAINING_TIPS.map((t) => `<li>${t}</li>`).join('')}</ul>
     <h3>Best rep ranges</h3>
     <ul class="list">${REP_RANGES.map(([goal, reps]) => `<li><span class="grow">${goal}</span><span class="muted small">${reps}</span></li>`).join('')}</ul>`);
 }
 
 const PPL_LABELS = { push: 'Push', pull: 'Pull', legs: 'Legs' };
+const dayLabels = (program) => program.labels || PPL_LABELS;
 
 function applyProgram(programId, scheduleId) {
   const program = PROGRAMS.find((p) => p.id === programId);
-  state.plan = SCHEDULES[scheduleId].days.map((type) => ({
-    focus: type ? PPL_LABELS[type] : 'Rest',
+  const labels = dayLabels(program);
+  state.plan = (program.week || SCHEDULES[scheduleId].days).map((type) => ({
+    focus: type ? labels[type] : 'Rest',
     exercises: type ? program[type].map(([name, sets, reps]) => ({ name, sets, reps })) : []
   }));
+  if (state.programId !== programId) state.programStart = dateKey();
   state.programId = programId;
-  state.scheduleId = scheduleId;
+  state.scheduleId = program.week ? null : scheduleId;
   save();
+}
+
+// Which week of a phased program we're in, counted from the day it was started.
+function programPhase(program) {
+  if (!program?.phases || !state.programStart) return null;
+  const days = Math.floor((parseKey(dateKey()) - parseKey(state.programStart)) / 86400000);
+  const total = program.phases[program.phases.length - 1][1];
+  const week = Math.floor(days / 7) + 1;
+  const phase = program.phases.find(([from, to]) => week >= from && week <= to);
+  return { week, total, text: phase ? phase[2] : 'Plan finished. Review progress with your coach and set the next goal.' };
 }
 
 function programPreview(programId) {
@@ -789,8 +818,8 @@ function programPreview(programId) {
   return `
     <details class="preview">
       <summary class="small">See the exercises in ${program.name}</summary>
-      ${Object.entries(PPL_LABELS).map(([type, label]) => `
-        <h3 style="margin:10px 0 6px">${label} day</h3>
+      ${Object.entries(dayLabels(program)).map(([type, label]) => `
+        <h3 style="margin:10px 0 6px">${program.week ? DAYS[program.week.indexOf(type)] + ' · ' : ''}${label}</h3>
         <ul class="list">${program[type].map(([name, sets, reps]) => `<li>${exerciseButton(name, `${sets} × ${reps}`)}<span class="muted small">${sets} × ${reps}</span></li>`).join('')}</ul>`).join('')}
     </details>`;
 }
@@ -826,7 +855,8 @@ function bindProgramPicker(form) {
   const sync = () => {
     const id = form.querySelector('input[name=program]:checked')?.value;
     form.querySelector('.program-preview').innerHTML = programPreview(id);
-    form.querySelector('.schedule-pick').hidden = id === 'none';
+    // Programs with their own week don't need the days-per-week choice.
+    form.querySelector('.schedule-pick').hidden = id === 'none' || !!PROGRAMS.find((p) => p.id === id)?.week;
   };
   form.querySelectorAll('input[name=program]').forEach((r) => r.addEventListener('change', sync));
   sync();
