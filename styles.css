@@ -514,3 +514,44 @@ dialog#sheet h3 { margin-top: 4px; }
   .day-chip { padding: 8px 0; }
   .day-chip .small { font-size: .62rem; }
 }
+
+/* Exercise cards: moving demo + muscle map */
+.ex-title {
+  min-height: 0;
+  padding: 0;
+  background: none;
+  color: var(--text);
+  font-size: 1.02rem;
+  font-weight: 700;
+  text-align: left;
+}
+.ex-title::after { content: " ›"; color: var(--accent); }
+
+.ex-media { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 10px; align-items: center; }
+.ex-media.no-photo { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+.ex-media.no-photo .bodymap { max-width: 180px; }
+.ex-media .demo-anim { border-radius: 10px; }
+
+.bodymap { width: 100%; height: auto; display: block; }
+.bodymap .base { fill: var(--surface-2); }
+.bodymap .idle { fill: var(--line); }
+.bodymap .secondary { fill: var(--frame); }
+.bodymap .primary { fill: var(--accent); animation: muscle-pulse 1.6s ease-in-out infinite; }
+.bodymap text { fill: var(--muted); font-size: 9px; text-anchor: middle; }
+@keyframes muscle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bodymap .primary { animation: none; }
+}
+
+.muscles { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  font-size: .75rem;
+  padding: 3px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--frame);
+  color: var(--muted);
+}
+.tag.primary { border-color: var(--accent); color: var(--accent); }

@@ -624,12 +624,12 @@ function renderWorkout() {
       </section>`;
   } else if (!isToday) {
     body = `
-      <section class="card">
-        <ul class="list">${plan.exercises.map((e) => `
-          <li>${exerciseButton(e.name, setsReps(e))}<span class="muted small">${e.sets ? `${e.sets} × ${esc(e.reps)}` : ''}</span></li>`).join('')}
-        </ul>
-      </section>
-      <p class="muted small center">You can tick off sets on the day. Tap ▶ to see how each exercise is done.</p>`;
+      ${plan.exercises.map((e) => `
+        <section class="card exercise">
+          ${exerciseHeader(e)}
+          ${exerciseMedia(e.name)}
+        </section>`).join('')}
+      <p class="muted small center">You can tick off sets on the day. Tap an exercise name for step-by-step help.</p>`;
   } else {
     body = `
       ${done >= total ? '<section class="card done-banner"><h2>Workout complete ✓</h2><p class="muted small" style="margin:0">Great job. Drink water and eat some protein.</p></section>' : ''}
@@ -638,10 +638,8 @@ function renderWorkout() {
         const sets = e.sets || 1;
         return `
           <section class="card exercise ${count >= sets ? 'complete' : ''}">
-            <div class="row between">
-              ${exerciseButton(e.name, setsReps(e))}
-              <span class="muted small">${e.sets ? `${e.sets} sets × ${esc(e.reps)}` : ''}</span>
-            </div>
+            ${exerciseHeader(e)}
+            ${exerciseMedia(e.name)}
             <div class="row">
               <label class="weight">
                 <input type="number" inputmode="decimal" min="0" step="0.5" data-weight="${i}" value="${lastWeight(e.name)}" placeholder="0" aria-label="Weight for ${esc(e.name)} in kg">
@@ -655,7 +653,7 @@ function renderWorkout() {
             </div>
           </section>`;
       }).join('')}
-      <p class="muted small center">Tap a number when you finish that set. Tap ▶ to see how.</p>`;
+      <p class="muted small center">Tap a number when you finish that set. Tap an exercise name for step-by-step help.</p>`;
   }
 
   $('#view').innerHTML = `
@@ -889,19 +887,95 @@ function exerciseButton(name, detail = '') {
     <span class="play" aria-hidden="true">▶</span>${esc(name)}</button>`;
 }
 
+/* ---------- Muscle map ---------- */
+
+// Simple front and back figure. Each muscle group maps to shapes on either view.
+const BODY_BASE = (x) => `
+  <circle cx="${x}" cy="14" r="9"/>
+  <rect x="${x - 5}" y="22" width="10" height="7" rx="2"/>
+  <path d="M${x - 20} 30 Q${x} 26 ${x + 20} 30 L${x + 17} 88 Q${x} 94 ${x - 17} 88 Z"/>
+  <rect x="${x - 30}" y="32" width="10" height="34" rx="5"/><rect x="${x + 20}" y="32" width="10" height="34" rx="5"/>
+  <rect x="${x - 33}" y="64" width="9" height="30" rx="4.5"/><rect x="${x + 24}" y="64" width="9" height="30" rx="4.5"/>
+  <rect x="${x - 17}" y="86" width="16" height="58" rx="8"/><rect x="${x + 1}" y="86" width="16" height="58" rx="8"/>
+  <rect x="${x - 15}" y="142" width="12" height="44" rx="6"/><rect x="${x + 3}" y="142" width="12" height="44" rx="6"/>`;
+
+const FRONT = 45;
+const BACK = 135;
+const MUSCLE_SHAPES = {
+  chest: `<ellipse cx="${FRONT - 8}" cy="42" rx="9" ry="7"/><ellipse cx="${FRONT + 8}" cy="42" rx="9" ry="7"/>`,
+  shoulders: `<ellipse cx="${FRONT - 22}" cy="36" rx="6" ry="6"/><ellipse cx="${FRONT + 22}" cy="36" rx="6" ry="6"/>
+    <ellipse cx="${BACK - 22}" cy="36" rx="6" ry="6"/><ellipse cx="${BACK + 22}" cy="36" rx="6" ry="6"/>`,
+  biceps: `<ellipse cx="${FRONT - 25}" cy="52" rx="4" ry="9"/><ellipse cx="${FRONT + 25}" cy="52" rx="4" ry="9"/>`,
+  triceps: `<ellipse cx="${BACK - 25}" cy="52" rx="4" ry="9"/><ellipse cx="${BACK + 25}" cy="52" rx="4" ry="9"/>`,
+  forearms: `<ellipse cx="${FRONT - 28}" cy="76" rx="3.5" ry="10"/><ellipse cx="${FRONT + 28}" cy="76" rx="3.5" ry="10"/>
+    <ellipse cx="${BACK - 28}" cy="76" rx="3.5" ry="10"/><ellipse cx="${BACK + 28}" cy="76" rx="3.5" ry="10"/>`,
+  abdominals: `<rect x="${FRONT - 7}" y="52" width="14" height="30" rx="5"/>`,
+  quadriceps: `<ellipse cx="${FRONT - 9}" cy="110" rx="6.5" ry="20"/><ellipse cx="${FRONT + 9}" cy="110" rx="6.5" ry="20"/>`,
+  adductors: `<ellipse cx="${FRONT - 3}" cy="100" rx="2.5" ry="10"/><ellipse cx="${FRONT + 3}" cy="100" rx="2.5" ry="10"/>`,
+  abductors: `<ellipse cx="${FRONT - 16}" cy="96" rx="2.5" ry="8"/><ellipse cx="${FRONT + 16}" cy="96" rx="2.5" ry="8"/>`,
+  calves: `<ellipse cx="${FRONT - 9}" cy="160" rx="4.5" ry="13"/><ellipse cx="${FRONT + 9}" cy="160" rx="4.5" ry="13"/>
+    <ellipse cx="${BACK - 9}" cy="158" rx="5" ry="14"/><ellipse cx="${BACK + 9}" cy="158" rx="5" ry="14"/>`,
+  traps: `<path d="M${BACK - 14} 31 Q${BACK} 24 ${BACK + 14} 31 L${BACK + 6} 44 L${BACK - 6} 44 Z"/>`,
+  lats: `<ellipse cx="${BACK - 11}" cy="56" rx="6" ry="14"/><ellipse cx="${BACK + 11}" cy="56" rx="6" ry="14"/>`,
+  'middle back': `<rect x="${BACK - 5}" y="44" width="10" height="20" rx="3"/>`,
+  'lower back': `<rect x="${BACK - 8}" y="68" width="16" height="14" rx="4"/>`,
+  glutes: `<ellipse cx="${BACK - 8}" cy="96" rx="8.5" ry="9"/><ellipse cx="${BACK + 8}" cy="96" rx="8.5" ry="9"/>`,
+  hamstrings: `<ellipse cx="${BACK - 9}" cy="122" rx="6.5" ry="17"/><ellipse cx="${BACK + 9}" cy="122" rx="6.5" ry="17"/>`,
+  neck: `<rect x="${FRONT - 4}" y="23" width="8" height="6" rx="2"/>`
+};
+
+function bodyMap(primary = [], secondary = []) {
+  const group = (cls, list) => list.filter((m) => MUSCLE_SHAPES[m]).map((m) => `<g class="${cls}">${MUSCLE_SHAPES[m]}</g>`).join('');
+  return `
+    <svg class="bodymap" viewBox="0 0 180 192" role="img" aria-label="Muscles worked: ${esc([...primary, ...secondary].join(', '))}">
+      <g class="base">${BODY_BASE(FRONT)}${BODY_BASE(BACK)}</g>
+      <g class="idle">${Object.values(MUSCLE_SHAPES).join('')}</g>
+      ${group('secondary', secondary)}
+      ${group('primary', primary)}
+      <text x="${FRONT}" y="191">Front</text><text x="${BACK}" y="191">Back</text>
+    </svg>`;
+}
+
+const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
+
+// Moving start/end photos beside a body map, with the muscle names below.
+function exerciseMedia(name) {
+  const demo = demoFor(name);
+  if (!demo) return '';
+  return `
+    <div class="ex-media ${demo.id ? '' : 'no-photo'}">
+      ${demo.id ? `
+        <div class="demo-anim" role="img" aria-label="${esc(name)}: start and end position">
+          <img src="demos/${demo.id}/0.jpg" alt="">
+          <img src="demos/${demo.id}/1.jpg" alt="" class="end">
+        </div>` : ''}
+      ${bodyMap(demo.muscles, demo.secondary)}
+    </div>
+    ${demo.muscles.length ? `
+      <div class="muscles">
+        ${demo.muscles.map((m) => `<span class="tag primary">${titleCase(m)}</span>`).join('')}
+        ${demo.secondary.map((m) => `<span class="tag">${titleCase(m)}</span>`).join('')}
+      </div>` : ''}`;
+}
+
+// Card header: the exercise name opens the step-by-step sheet.
+function exerciseHeader(e) {
+  return `
+    <div class="row between">
+      <button type="button" class="ex-title grow" data-act="demo" data-name="${esc(e.name)}" data-detail="${esc(setsReps(e))}">${esc(e.name)}</button>
+      <span class="muted small">${e.sets ? `${e.sets} × ${esc(e.reps)}` : ''}</span>
+    </div>`;
+}
+
 function showDemo(name, detail) {
   const demo = demoFor(name);
   const reels = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(`${name} form`)}`;
   const youtube = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} exercise proper form`)}`;
   openSheet(esc(name), `
     ${detail ? `<span class="pill">${esc(detail)}</span>` : ''}
-    ${demo ? `
-      <div class="demo-anim" role="img" aria-label="${esc(name)}: start and end position">
-        <img src="demos/${demo.id}/0.jpg" alt="">
-        <img src="demos/${demo.id}/1.jpg" alt="" class="end">
-      </div>
-      <ol class="steps">${demo.steps.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>`
-    : '<p class="empty">No photos for this exercise yet. Watch a video instead.</p>'}
+    ${exerciseMedia(name)}
+    ${demo?.steps.length ? `<ol class="steps">${demo.steps.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>`
+      : '<p class="empty">No written steps for this exercise yet. Watch a video instead.</p>'}
     `, null, `
     <a class="video-link" href="${youtube}" target="_blank" rel="noopener" aria-label="Watch ${esc(name)} videos on YouTube" title="YouTube">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path class="glyph" d="M10 9l5 3-5 3z"/></svg>

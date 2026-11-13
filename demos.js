@@ -1,6 +1,6 @@
 'use strict';
 
-// Exercise demos: two photos (start/end) and steps from free-exercise-db (Unlicense, public domain).
+// Exercise demos: two photos (start/end), steps and muscles worked from free-exercise-db (Unlicense, public domain).
 // https://github.com/yuhonas/free-exercise-db
 const DEMOS = {
  "Air Squats": {
@@ -9,6 +9,13 @@ const DEMOS = {
    "Stand with your feet shoulder width apart. You can place your hands behind your head. This will be your starting position.",
    "Begin the movement by flexing your knees and hips, sitting back with your hips.",
    "Continue down to full depth if you are able,and quickly reverse the motion until you return to the starting position. As you squat, keep your head and chest up and push your knees out."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "glutes",
+   "hamstrings"
   ]
  },
  "Arnold Press": {
@@ -19,6 +26,12 @@ const DEMOS = {
    "Continue lifting the dumbbells until your arms are extended above you in straight arm position. Breathe out as you perform this portion of the movement.",
    "After a second pause at the top, begin to lower the dumbbells to the original position by rotating the palms of your hands towards you. Tip: The left arm will be rotated in a counter clockwise manner while the right one will be rotated clockwise. Breathe in as you perform this portion of the movement.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": [
+   "triceps"
   ]
  },
  "Back Squat": {
@@ -30,6 +43,15 @@ const DEMOS = {
    "Begin to slowly lower the bar by bending the knees and sitting back with your hips as you maintain a straight posture with the head up. Continue down until your hamstrings are on your calves. Inhale as you perform this portion of the movement.",
    "Begin to raise the bar as you exhale by pushing the floor with the heel or middle of your foot as you straighten the legs and extend the hips to go back to the starting position.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings",
+   "lower back"
   ]
  },
  "Barbell Curl": {
@@ -40,6 +62,12 @@ const DEMOS = {
    "Continue the movement until your biceps are fully contracted and the bar is at shoulder level. Hold the contracted position for a second and squeeze the biceps hard.",
    "Slowly begin to bring the bar back to starting position as your breathe in.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "biceps"
+  ],
+  "secondary": [
+   "forearms"
   ]
  },
  "Barbell Row": {
@@ -49,6 +77,14 @@ const DEMOS = {
    "Now, while keeping the torso stationary, breathe out and lift the barbell to you. Keep the elbows close to the body and only use the forearms to hold the weight. At the top contracted position, squeeze the back muscles and hold for a brief pause.",
    "Then inhale and slowly lower the barbell back to the starting position.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "middle back"
+  ],
+  "secondary": [
+   "biceps",
+   "lats",
+   "shoulders"
   ]
  },
  "Bench Press": {
@@ -59,6 +95,13 @@ const DEMOS = {
    "After a brief pause, push the bar back to the starting position as you breathe out. Focus on pushing the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position at the top of the motion, hold for a second and then start coming down slowly again. Tip: Ideally, lowering the weight should take about twice as long as raising it.",
    "Repeat the movement for the prescribed amount of repetitions.",
    "When you are done, place the bar back in the rack."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "Bicep Curl Machine": {
@@ -68,7 +111,11 @@ const DEMOS = {
    "Perform the movement by flexing the elbow, pulling your lower arm towards your upper arm.",
    "Pause at the top of the movement, and then slowly return the weight to the starting position.",
    "Avoid returning the weight all the way to the stops until the set is complete to keep tension on the muscles being worked."
-  ]
+  ],
+  "muscles": [
+   "biceps"
+  ],
+  "secondary": []
  },
  "Bodyweight Squat": {
   "id": "Bodyweight_Squat",
@@ -76,6 +123,13 @@ const DEMOS = {
    "Stand with your feet shoulder width apart. You can place your hands behind your head. This will be your starting position.",
    "Begin the movement by flexing your knees and hips, sitting back with your hips.",
    "Continue down to full depth if you are able,and quickly reverse the motion until you return to the starting position. As you squat, keep your head and chest up and push your knees out."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "glutes",
+   "hamstrings"
   ]
  },
  "Bulgarian Split Squat": {
@@ -85,6 +139,13 @@ const DEMOS = {
    "Hold a dumbbell in each hand, letting them hang at the sides. This will be your starting position.",
    "Begin by descending, flexing your knee and hip to lower your body down. Maintain good posture througout the movement. Keep the front knee in line with the foot as you perform the exercise.",
    "At the bottom of the movement, drive through the heel to extend the knee and hip to return to the starting position."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "glutes",
+   "hamstrings"
   ]
  },
  "Cable Fly": {
@@ -95,6 +156,12 @@ const DEMOS = {
    "With a slight bend on your elbows in order to prevent stress at the biceps tendon, extend your arms to the side (straight out at both sides) in a wide arc until you feel a stretch on your chest. Breathe in as you perform this portion of the movement. Tip: Keep in mind that throughout the movement, the arms and torso should remain stationary; the movement should only occur at the shoulder joint.",
    "Return your arms back to the starting position as you breathe out. Make sure to use the same arc of motion used to lower the weights.",
    "Hold for a second at the starting position and repeat the movement for the prescribed amount of repetitions."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders"
   ]
  },
  "Cable Lateral Raise": {
@@ -107,6 +174,13 @@ const DEMOS = {
    "While keeping the arms stationary, raise the upper arms to the sides until they are parallel to the floor and at shoulder height. Exhale during the execution of this movement and hold the contraction for a second.",
    "Slowly lower your arms to the starting position as you inhale.",
    "Repeat for the recommended amount of repetitions. Tip: Maintain upper arms perpendicular to torso and a fixed elbow position (10 degree to 30 degree angle) throughout exercise."
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": [
+   "middle back",
+   "traps"
   ]
  },
  "Cable Row": {
@@ -117,6 +191,14 @@ const DEMOS = {
    "With your arms extended pull back until your torso is at a 90-degree angle from your legs. Your back should be slightly arched and your chest should be sticking out. You should be feeling a nice stretch on your lats as you hold the bar in front of you. This is the starting position of the exercise.",
    "Keeping the torso stationary, pull the handles back towards your torso while keeping the arms close to it until you touch the abdominals. Breathe out as you perform that movement. At that point you should be squeezing your back muscles hard. Hold that contraction for a second and slowly go back to the original position while breathing in.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "middle back"
+  ],
+  "secondary": [
+   "biceps",
+   "lats",
+   "shoulders"
   ]
  },
  "Calf Machine": {
@@ -127,7 +209,11 @@ const DEMOS = {
    "Raise your heels as you breathe out by extending your ankles as high as possible and flexing your calf. Ensure that the knee is kept stationary at all times. There should be no bending at any time. Hold the contracted position by a second before you start to go back down.",
    "Go back slowly to the starting position as you breathe in by lowering your heels as you bend the ankles until calves are stretched.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "calves"
+  ],
+  "secondary": []
  },
  "Calf Raise": {
   "id": "Standing_Calf_Raises",
@@ -137,7 +223,11 @@ const DEMOS = {
    "Raise your heels as you breathe out by extending your ankles as high as possible and flexing your calf. Ensure that the knee is kept stationary at all times. There should be no bending at any time. Hold the contracted position by a second before you start to go back down.",
    "Go back slowly to the starting position as you breathe in by lowering your heels as you bend the ankles until calves are stretched.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "calves"
+  ],
+  "secondary": []
  },
  "Chair Dips": {
   "id": "Bench_Dips",
@@ -146,6 +236,13 @@ const DEMOS = {
    "Slowly lower your body as you inhale by bending at the elbows until you lower yourself far enough to where there is an angle slightly smaller than 90 degrees between the upper arm and the forearm. Tip: Keep the elbows as close as possible throughout the movement. Forearms should always be pointing down.",
    "Using your triceps to bring your torso up again, lift yourself back to the starting position.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "triceps"
+  ],
+  "secondary": [
+   "chest",
+   "shoulders"
   ]
  },
  "Chest Press": {
@@ -155,6 +252,13 @@ const DEMOS = {
    "Your chest and head should be up and your shoulder blades retracted. This will be your starting position.",
    "Press the handles forward by extending through the elbow.",
    "After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "Chest Press Machine": {
@@ -164,6 +268,13 @@ const DEMOS = {
    "Your chest and head should be up and your shoulder blades retracted. This will be your starting position.",
    "Press the handles forward by extending through the elbow.",
    "After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "DB Shoulder Press": {
@@ -175,6 +286,12 @@ const DEMOS = {
    "Now, exhale and push the dumbbells upward until they touch at the top.",
    "Then, after a brief pause at the top contracted position, slowly lower the weights back down to the starting position while inhaling.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": [
+   "triceps"
   ]
  },
  "Dead Bug": {
@@ -187,7 +304,11 @@ const DEMOS = {
    "Maintain the position of your lumbar and pelvis as you perform the movement, as your back is going to want to arch.",
    "Stay tight and return the working leg to the starting position.",
    "Repeat on the opposite side, alternating until the set is complete."
-  ]
+  ],
+  "muscles": [
+   "abdominals"
+  ],
+  "secondary": []
  },
  "Deadlift": {
   "id": "Barbell_Deadlift",
@@ -197,6 +318,19 @@ const DEMOS = {
    "While holding the bar, start the lift by pushing with your legs while simultaneously getting your torso to the upright position as you breathe out. In the upright position, stick your chest out and contract the back by bringing the shoulder blades back. Think of how the soldiers in the military look when they are in standing in attention.",
    "Go back to the starting position by bending at the knees while simultaneously leaning the torso forward at the waist while keeping the back straight. When the weights on the bar touch the floor you are back at the starting position and ready to perform another repetition.",
    "Perform the amount of repetitions prescribed in the program."
+  ],
+  "muscles": [
+   "lower back"
+  ],
+  "secondary": [
+   "calves",
+   "forearms",
+   "glutes",
+   "hamstrings",
+   "lats",
+   "middle back",
+   "quadriceps",
+   "traps"
   ]
  },
  "Dumbbell Biceps Curl": {
@@ -206,6 +340,12 @@ const DEMOS = {
    "Now, keeping the upper arms stationary, exhale and curl the weights while contracting your biceps. Continue to raise the weights until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a brief pause as you squeeze your biceps.",
    "Then, inhale and slowly begin to lower the dumbbells back to the starting position.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "biceps"
+  ],
+  "secondary": [
+   "forearms"
   ]
  },
  "Dumbbell Romanian Deadlift": {
@@ -216,6 +356,13 @@ const DEMOS = {
    "Keeping the knees stationary, lower the dumbbells to over the top of your feet by bending at the waist while keeping your back straight. Keep moving forward as if you were going to pick something from the floor until you feel a stretch on the hamstrings. Exhale as you perform this movement",
    "Start bringing your torso up straight again by extending your hips and waist until you are back at the starting position. Inhale as you perform this movement.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "hamstrings"
+  ],
+  "secondary": [
+   "glutes",
+   "lower back"
   ]
  },
  "EZ Bar Curl": {
@@ -226,13 +373,25 @@ const DEMOS = {
    "Continue to raise the weight until your biceps are fully contracted and the bar is at shoulder level. Hold the top contracted position for a moment and squeeze the biceps.",
    "Then inhale and slowly lower the bar back to the starting position.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "biceps"
+  ],
+  "secondary": []
  },
  "Easy cycling": {
   "id": "Bicycling_Stationary",
   "steps": [
    "To begin, seat yourself on the bike and adjust the seat to your height.",
    "Select the desired option from the menu. You may have to start pedaling to turn it on. You can use the manual setting, or you can select a program to use. Typically, you can enter your age and weight to estimate the amount of calories burned during exercise. The level of resistance can be changed throughout the workout. The handles can be used to monitor your heart rate to help you stay at an appropriate intensity."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings"
   ]
  },
  "Easy treadmill walk": {
@@ -240,12 +399,26 @@ const DEMOS = {
   "steps": [
    "To begin, step onto the treadmill and select the desired option from the menu. Most treadmills have a manual setting, or you can select a program to run. Typically, you can enter your age and weight to estimate the amount of calories burned during exercise. Elevation can be adjusted to change the intensity of the workout.",
    "Treadmills offer convenience, cardiovascular benefits, and usually have less impact than walking outside. When walking, you should move at a moderate to fast pace, not a leisurely one. Being an activity of lower intensity, walking doesn't burn as many calories as some other activities, but still provides great benefit. A 150 lb person will burn about 175 calories walking 4 miles per hour for 30 minutes, compared to 450 calories running twice as fast. Maintain proper posture as you walk, and only hold onto the handles when necessary, such as when dismounting or checking your heart rate."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings"
   ]
  },
  "Face Pull": {
   "id": "Face_Pull",
   "steps": [
    "Facing a high pulley with a rope or dual handles attached, pull the weight directly towards your face, separating your hands as you do so. Keep your upper arms parallel to the ground."
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": [
+   "middle back"
   ]
  },
  "Flat Bench Press": {
@@ -256,6 +429,13 @@ const DEMOS = {
    "After a brief pause, push the bar back to the starting position as you breathe out. Focus on pushing the bar using your chest muscles. Lock your arms and squeeze your chest in the contracted position at the top of the motion, hold for a second and then start coming down slowly again. Tip: Ideally, lowering the weight should take about twice as long as raising it.",
    "Repeat the movement for the prescribed amount of repetitions.",
    "When you are done, place the bar back in the rack."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "Glute Bridge": {
@@ -264,6 +444,12 @@ const DEMOS = {
    "Lie flat on the floor on your back with the hands by your side and your knees bent. Your feet should be placed around shoulder width. This will be your starting position.",
    "Pushing mainly with your heels, lift your hips off the floor while keeping your back straight. Breathe out as you perform this part of the motion and hold at the top for a second.",
    "Slowly go back to the starting position as you breathe in."
+  ],
+  "muscles": [
+   "glutes"
+  ],
+  "secondary": [
+   "hamstrings"
   ]
  },
  "Goblet Squat": {
@@ -272,6 +458,15 @@ const DEMOS = {
    "Stand holding a light kettlebell by the horns close to your chest. This will be your starting position.",
    "Squat down between your legs until your hamstrings are on your calves. Keep your chest and head up and your back straight.",
    "At the bottom position, pause and use your elbows to push your knees out. Return to the starting position, and repeat for 10-20 repetitions."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings",
+   "shoulders"
   ]
  },
  "Hack Squat": {
@@ -284,6 +479,14 @@ const DEMOS = {
    "Begin to slowly lower the unit by bending the knees as you maintain a straight posture with the head up (back on the pad at all times). Continue down until the angle between the upper leg and the calves becomes slightly less than 90-degrees (which is the point in which the upper legs are below parallel to the floor). Inhale as you perform this portion of the movement. Tip: If you performed the exercise correctly, the front of the knees should make an imaginary straight line with the toes that is perpendicular to the front. If your knees are past that imaginary line (if they are past your toes) then you are placing undue stress on the knee and the exercise has been performed incorrectly.",
    "Begin to raise the unit as you exhale by pushing the floor with mainly with the heel of your foot as you straighten the legs again and go back to the starting position.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings"
   ]
  },
  "Hammer Curl": {
@@ -294,7 +497,11 @@ const DEMOS = {
    "Now, while holding your upper arm stationary, exhale and curl the weight forward while contracting the biceps. Continue to raise the weight until the biceps are fully contracted and the dumbbell is at shoulder level. Hold the contracted position for a brief moment as you squeeze the biceps. Tip: Focus on keeping the elbow stationary and only moving your forearm.",
    "After the brief pause, inhale and slowly begin the lower the dumbbells back down to the starting position.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "biceps"
+  ],
+  "secondary": []
  },
  "Heavy Deadlift": {
   "id": "Barbell_Deadlift",
@@ -304,6 +511,19 @@ const DEMOS = {
    "While holding the bar, start the lift by pushing with your legs while simultaneously getting your torso to the upright position as you breathe out. In the upright position, stick your chest out and contract the back by bringing the shoulder blades back. Think of how the soldiers in the military look when they are in standing in attention.",
    "Go back to the starting position by bending at the knees while simultaneously leaning the torso forward at the waist while keeping the back straight. When the weights on the bar touch the floor you are back at the starting position and ready to perform another repetition.",
    "Perform the amount of repetitions prescribed in the program."
+  ],
+  "muscles": [
+   "lower back"
+  ],
+  "secondary": [
+   "calves",
+   "forearms",
+   "glutes",
+   "hamstrings",
+   "lats",
+   "middle back",
+   "quadriceps",
+   "traps"
   ]
  },
  "Incline Bench Press": {
@@ -314,6 +534,13 @@ const DEMOS = {
    "After a second pause, bring the bar back to the starting position as you breathe out and push the bar using your chest muscles. Lock your arms in the contracted position, squeeze your chest, hold for a second and then start coming down slowly again. Tip: it should take at least twice as long to go down than to come up.",
    "Repeat the movement for the prescribed amount of repetitions.",
    "When you are done, place the bar back in the rack."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "Incline Curl": {
@@ -323,7 +550,11 @@ const DEMOS = {
    "While holding the upper arm stationary, curl the weights forward while contracting the biceps as you breathe out. Only the forearms should move. Continue the movement until your biceps are fully contracted and the dumbbells are at shoulder level. Hold the contracted position for a second.",
    "Slowly begin to bring the dumbbells back to starting position as your breathe in.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "biceps"
+  ],
+  "secondary": []
  },
  "Incline DB Press": {
   "id": "Incline_Dumbbell_Press",
@@ -335,6 +566,13 @@ const DEMOS = {
    "Lock your arms at the top, hold for a second, and then start slowly lowering the weight. Tip Ideally, lowering the weights should take about twice as long as raising them.",
    "Repeat the movement for the prescribed amount of repetitions.",
    "When you are done, place the dumbbells back on your thighs and then on the floor. This is the safest manner to release the dumbbells."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "Incline Dumbbell Press": {
@@ -347,6 +585,13 @@ const DEMOS = {
    "Lock your arms at the top, hold for a second, and then start slowly lowering the weight. Tip Ideally, lowering the weights should take about twice as long as raising them.",
    "Repeat the movement for the prescribed amount of repetitions.",
    "When you are done, place the dumbbells back on your thighs and then on the floor. This is the safest manner to release the dumbbells."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "Incline Press Machine": {
@@ -355,6 +600,13 @@ const DEMOS = {
    "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the top of the pectorals at the beginning of the motion. Your chest and head should be up and your shoulder blades retracted. This will be your starting position.",
    "Press the handles forward by extending through the elbow.",
    "After a brief pause at the top, return the weight just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "Jump Squats": {
@@ -366,6 +618,14 @@ const DEMOS = {
    "Now pressing mainly with the ball of your feet, jump straight up in the air as high as possible, using the thighs like springs. Exhale during this portion of the movement.",
    "When you touch the floor again, immediately squat down and jump again.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings"
   ]
  },
  "Lat Pulldown": {
@@ -377,6 +637,14 @@ const DEMOS = {
    "As you breathe out, bring the bar down until it touches your upper chest by drawing the shoulders and the upper arms down and back. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary and only the arms should move. The forearms should do no other work except for holding the bar; therefore do not try to pull down the bar using the forearms.",
    "After a second at the contracted position squeezing your shoulder blades together, slowly raise the bar back to the starting position when your arms are fully extended and the lats are fully stretched. Inhale during this portion of the movement.",
    "Repeat this motion for the prescribed amount of repetitions."
+  ],
+  "muscles": [
+   "lats"
+  ],
+  "secondary": [
+   "biceps",
+   "middle back",
+   "shoulders"
   ]
  },
  "Lat Pulldown Machine": {
@@ -388,6 +656,14 @@ const DEMOS = {
    "As you breathe out, bring the bar down until it touches your upper chest by drawing the shoulders and the upper arms down and back. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary and only the arms should move. The forearms should do no other work except for holding the bar; therefore do not try to pull down the bar using the forearms.",
    "After a second at the contracted position squeezing your shoulder blades together, slowly raise the bar back to the starting position when your arms are fully extended and the lats are fully stretched. Inhale during this portion of the movement.",
    "Repeat this motion for the prescribed amount of repetitions."
+  ],
+  "muscles": [
+   "lats"
+  ],
+  "secondary": [
+   "biceps",
+   "middle back",
+   "shoulders"
   ]
  },
  "Lateral Raise": {
@@ -397,7 +673,11 @@ const DEMOS = {
    "While maintaining the torso in a stationary position (no swinging), lift the dumbbells to your side with a slight bend on the elbow and the hands slightly tilted forward as if pouring water in a glass. Continue to go up until you arms are parallel to the floor. Exhale as you execute this movement and pause for a second at the top.",
    "Lower the dumbbells back down slowly to the starting position as you inhale.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": []
  },
  "Leg Curl": {
   "id": "Lying_Leg_Curls",
@@ -406,7 +686,11 @@ const DEMOS = {
    "Keeping the torso flat on the bench, ensure your legs are fully stretched and grab the side handles of the machine. Position your toes straight (or you can also use any of the other two stances described on the foot positioning section). This will be your starting position.",
    "As you exhale, curl your legs up as far as possible without lifting the upper legs from the pad. Once you hit the fully contracted position, hold it for a second.",
    "As you inhale, bring the legs back to the initial position. Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "hamstrings"
+  ],
+  "secondary": []
  },
  "Leg Extension": {
   "id": "Leg_Extensions",
@@ -415,7 +699,11 @@ const DEMOS = {
    "Using your quadriceps, extend your legs to the maximum as you exhale. Ensure that the rest of the body remains stationary on the seat. Pause a second on the contracted position.",
    "Slowly lower the weight back to the original position as you inhale, ensuring that you do not go past the 90-degree angle limit.",
    "Repeat for the recommended amount of times."
-  ]
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": []
  },
  "Leg Press": {
   "id": "Leg_Press",
@@ -425,6 +713,14 @@ const DEMOS = {
    "As you inhale, slowly lower the platform until your upper and lower legs make a 90-degree angle.",
    "Pushing mainly with the heels of your feet and using the quadriceps go back to the starting position as you exhale.",
    "Repeat for the recommended amount of repetitions and ensure to lock the safety pins properly once you are done. You do not want that platform falling on you fully loaded."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings"
   ]
  },
  "Low Row Machine": {
@@ -433,6 +729,13 @@ const DEMOS = {
    "Load an appropriate weight onto the pins and adjust the seat height so that the handles are at chest level. Grasp the handles with either a neutral or pronated grip. This will be your starting position.",
    "Pull the handles towards your torso, retracting your shoulder blades as you flex the elbow.",
    "Pause at the bottom of the motion, and then slowly return the handles to the starting position. For multiple repetitions, avoid completely returning the weight to the stops to keep tension on the muscles being worked."
+  ],
+  "muscles": [
+   "lats"
+  ],
+  "secondary": [
+   "biceps",
+   "middle back"
   ]
  },
  "Machine Chest Fly": {
@@ -443,6 +746,22 @@ const DEMOS = {
    "Push the handles together slowly as you squeeze your chest in the middle. Breathe out during this part of the motion and hold the contraction for a second.",
    "Return back to the starting position slowly as you inhale until your chest muscles are fully stretched.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": []
+ },
+ "Mobility and stretching": {
+  "id": null,
+  "steps": [],
+  "muscles": [
+   "hamstrings",
+   "lower back"
+  ],
+  "secondary": [
+   "shoulders",
+   "calves"
   ]
  },
  "One-arm Dumbbell Row": {
@@ -455,6 +774,14 @@ const DEMOS = {
    "Lower the resistance straight down to the starting position. Breathe in as you perform this step.",
    "Repeat the movement for the specified amount of repetitions.",
    "Switch sides and repeat again with the other arm."
+  ],
+  "muscles": [
+   "middle back"
+  ],
+  "secondary": [
+   "biceps",
+   "lats",
+   "shoulders"
   ]
  },
  "Pec Deck": {
@@ -465,14 +792,22 @@ const DEMOS = {
    "Push the handles together slowly as you squeeze your chest in the middle. Breathe out during this part of the motion and hold the contraction for a second.",
    "Return back to the starting position slowly as you inhale until your chest muscles are fully stretched.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": []
  },
  "Plank": {
   "id": "Plank",
   "steps": [
    "Get into a prone position on the floor, supporting your weight on your toes and your forearms. Your arms are bent and directly below the shoulder.",
    "Keep your body straight at all times, and hold this position as long as possible. To increase difficulty, an arm or leg can be raised."
-  ]
+  ],
+  "muscles": [
+   "abdominals"
+  ],
+  "secondary": []
  },
  "Preacher Curl": {
   "id": "Preacher_Curl",
@@ -482,7 +817,11 @@ const DEMOS = {
    "As you breathe in, slowly lower the bar until your upper arm is extended and the biceps is fully stretched.",
    "As you exhale, use the biceps to curl the weight up until your biceps is fully contracted and the bar is at shoulder height. Squeeze the biceps hard and hold this position for a second.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "biceps"
+  ],
+  "secondary": []
  },
  "Pull-Ups": {
   "id": "Pullups",
@@ -492,6 +831,13 @@ const DEMOS = {
    "Pull your torso up until the bar touches your upper chest by drawing the shoulders and the upper arms down and back. Exhale as you perform this portion of the movement. Tip: Concentrate on squeezing the back muscles once you reach the full contracted position. The upper torso should remain stationary as it moves through space and only the arms should move. The forearms should do no other work other than hold the bar.",
    "After a second on the contracted position, start to inhale and slowly lower your torso back to the starting position when your arms are fully extended and the lats are fully stretched.",
    "Repeat this motion for the prescribed amount of repetitions."
+  ],
+  "muscles": [
+   "lats"
+  ],
+  "secondary": [
+   "biceps",
+   "middle back"
   ]
  },
  "Push-Ups": {
@@ -501,6 +847,13 @@ const DEMOS = {
    "Next, lower yourself downward until your chest almost touches the floor as you inhale.",
    "Now breathe out and press your upper body back up to the starting position while squeezing your chest.",
    "After a brief pause at the top contracted position, you can begin to lower yourself downward again for as many repetitions as needed."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  },
  "Rear Delt Fly": {
@@ -512,7 +865,11 @@ const DEMOS = {
    "Keeping your torso forward and stationary, and the arms slightly bent at the elbows, lift the dumbbells straight to the side until both arms are parallel to the floor. Exhale as you lift the weights. (Note: avoid swinging the torso or bringing the arms back as opposed to the side.)",
    "After a one second contraction at the top, slowly lower the dumbbells back to the starting position.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": []
  },
  "Rear Delt Machine": {
   "id": "Reverse_Machine_Flyes",
@@ -521,7 +878,11 @@ const DEMOS = {
    "In a semicircular motion, pull your hands out to your side and back, contracting your rear delts.",
    "Keep your arms slightly bent throughout the movement, with all of the motion occurring at the shoulder joint.",
    "Pause at the rear of the movement, and slowly return the weight to the starting position."
-  ]
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": []
  },
  "Romanian Deadlift": {
   "id": "Romanian_Deadlift",
@@ -531,6 +892,14 @@ const DEMOS = {
    "Keeping your back and arms completely straight at all times, use your hips to lift the bar as you exhale. Tip: The movement should not be fast but steady and under control.",
    "Once you are standing completely straight up, lower the bar by pushing the hips back, only slightly bending the knees, unlike when squatting. Tip: Take a deep breath at the start of the movement and keep your chest up. Hold your breath as you lower and exhale as you complete the movement.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "hamstrings"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "lower back"
   ]
  },
  "Seated Cable Row": {
@@ -541,6 +910,14 @@ const DEMOS = {
    "With your arms extended pull back until your torso is at a 90-degree angle from your legs. Your back should be slightly arched and your chest should be sticking out. You should be feeling a nice stretch on your lats as you hold the bar in front of you. This is the starting position of the exercise.",
    "Keeping the torso stationary, pull the handles back towards your torso while keeping the arms close to it until you touch the abdominals. Breathe out as you perform that movement. At that point you should be squeezing your back muscles hard. Hold that contraction for a second and slowly go back to the original position while breathing in.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "middle back"
+  ],
+  "secondary": [
+   "biceps",
+   "lats",
+   "shoulders"
   ]
  },
  "Seated Calf Raise": {
@@ -552,7 +929,11 @@ const DEMOS = {
    "Slowly lower your heels by bending at the ankles until the calves are fully stretched. Inhale as you perform this movement.",
    "Raise the heels by extending the ankles as high as possible as you contract the calves and breathe out. Hold the top contraction for a second.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "calves"
+  ],
+  "secondary": []
  },
  "Seated Row": {
   "id": "Seated_Cable_Rows",
@@ -562,6 +943,14 @@ const DEMOS = {
    "With your arms extended pull back until your torso is at a 90-degree angle from your legs. Your back should be slightly arched and your chest should be sticking out. You should be feeling a nice stretch on your lats as you hold the bar in front of you. This is the starting position of the exercise.",
    "Keeping the torso stationary, pull the handles back towards your torso while keeping the arms close to it until you touch the abdominals. Breathe out as you perform that movement. At that point you should be squeezing your back muscles hard. Hold that contraction for a second and slowly go back to the original position while breathing in.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "middle back"
+  ],
+  "secondary": [
+   "biceps",
+   "lats",
+   "shoulders"
   ]
  },
  "Shoulder Press": {
@@ -573,6 +962,12 @@ const DEMOS = {
    "Now, exhale and push the dumbbells upward until they touch at the top.",
    "Then, after a brief pause at the top contracted position, slowly lower the weights back down to the starting position while inhaling.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": [
+   "triceps"
   ]
  },
  "Shoulder Press Machine": {
@@ -581,6 +976,12 @@ const DEMOS = {
    "Load an appropriate weight onto the pins and adjust the seat for your height. The handles should be near the top of the shoulders at the beginning of the motion. Your chest and head should be up and handles held with a pronated grip. This will be your starting position.",
    "Press the handles upward by extending through the elbow.",
    "After a brief pause at the top, return the weight to just above the start position, keeping tension on the muscles by not returning the weight to the stops until the set is complete."
+  ],
+  "muscles": [
+   "shoulders"
+  ],
+  "secondary": [
+   "triceps"
   ]
  },
  "Squat": {
@@ -592,6 +993,15 @@ const DEMOS = {
    "Begin to slowly lower the bar by bending the knees and sitting back with your hips as you maintain a straight posture with the head up. Continue down until your hamstrings are on your calves. Inhale as you perform this portion of the movement.",
    "Begin to raise the bar as you exhale by pushing the floor with the heel or middle of your foot as you straighten the legs and extend the hips to go back to the starting position.",
    "Repeat for the recommended amount of repetitions."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings",
+   "lower back"
   ]
  },
  "Standing Calf Raise": {
@@ -602,7 +1012,11 @@ const DEMOS = {
    "Raise your heels as you breathe out by extending your ankles as high as possible and flexing your calf. Ensure that the knee is kept stationary at all times. There should be no bending at any time. Hold the contracted position by a second before you start to go back down.",
    "Go back slowly to the starting position as you breathe in by lowering your heels as you bend the ankles until calves are stretched.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "calves"
+  ],
+  "secondary": []
  },
  "T-Bar Row": {
   "id": "T-Bar_Row_with_Handle",
@@ -612,6 +1026,13 @@ const DEMOS = {
    "Assume a wide stance with your hips back and your chest up. Your arms should be extended. This will be your starting position.",
    "Pull the weight to your upper abdomen by retracting the shoulder blades and flexing the elbows. Do not jerk the weight or cheat during the movement.",
    "After a brief pause, return to the starting position."
+  ],
+  "muscles": [
+   "middle back"
+  ],
+  "secondary": [
+   "biceps",
+   "lats"
   ]
  },
  "Tricep Pushdown": {
@@ -622,7 +1043,11 @@ const DEMOS = {
    "Using the triceps, bring the bar down until it touches the front of your thighs and the arms are fully extended perpendicular to the floor. The upper arms should always remain stationary next to your torso and only the forearms should move. Exhale as you perform this movement.",
    "After a second hold at the contracted position, bring the bar slowly up to the starting point. Breathe in as you perform this step.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "triceps"
+  ],
+  "secondary": []
  },
  "Tricep Rope Pushdown": {
   "id": "Triceps_Pushdown_-_Rope_Attachment",
@@ -632,7 +1057,11 @@ const DEMOS = {
    "Using the triceps, bring the rope down as you bring each side of the rope to the side of your thighs. At the end of the movement the arms are fully extended and perpendicular to the floor. The upper arms should always remain stationary next to your torso and only the forearms should move. Exhale as you perform this movement.",
    "After holding for a second, at the contracted position, bring the rope slowly up to the starting point. Breathe in as you perform this step.",
    "Repeat for the recommended amount of repetitions."
-  ]
+  ],
+  "muscles": [
+   "triceps"
+  ],
+  "secondary": []
  },
  "Walking Lunges": {
   "id": "Bodyweight_Walking_Lunge",
@@ -641,6 +1070,14 @@ const DEMOS = {
    "Step forward with one leg, flexing the knees to drop your hips. Descend until your rear knee nearly touches the ground. Your posture should remain upright, and your front knee should stay above the front foot.",
    "Drive through the heel of your lead foot and extend both knees to raise yourself back up.",
    "Step forward with your rear foot, repeating the lunge on the opposite leg."
+  ],
+  "muscles": [
+   "quadriceps"
+  ],
+  "secondary": [
+   "calves",
+   "glutes",
+   "hamstrings"
   ]
  },
  "Weighted Dips": {
@@ -650,6 +1087,13 @@ const DEMOS = {
    "While breathing in, lower yourself slowly with your torso leaning forward around 30 degrees or so and your elbows flared out slightly until you feel a slight stretch in the chest.",
    "Once you feel the stretch, use your chest to bring your body back to the starting position as you breathe out. Tip: Remember to squeeze the chest at the top of the movement for a second.",
    "Repeat the movement for the prescribed amount of repetitions."
+  ],
+  "muscles": [
+   "chest"
+  ],
+  "secondary": [
+   "shoulders",
+   "triceps"
   ]
  }
 };
