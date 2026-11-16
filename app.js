@@ -949,8 +949,9 @@ function exerciseDemo(name) {
   const map = demo?.muscles.length ? `<div class="ex-media">${bodyMap(demo.muscles, demo.secondary)}</div>` : '';
   if (!id) return map;
   return `
-    <figure class="gif-demo" data-fallback="${esc(name)}">
-      <img src="https://i.giphy.com/media/${id}/200w.webp" alt="${esc(name)} demonstration" loading="lazy">
+    <figure class="gif-demo" data-fallback="${esc(name)}" data-act="gif-full" data-name="${esc(name)}" role="button" tabindex="0" aria-label="${esc(name)} demonstration. Tap to enlarge.">
+      <img src="https://i.giphy.com/media/${id}/giphy.webp" alt="" loading="lazy">
+      <span class="zoom" aria-hidden="true">⤢</span>
       <a class="via" href="https://giphy.com/gifs/${id}" target="_blank" rel="noopener">via GIPHY</a>
     </figure>`;
 }
@@ -1451,6 +1452,14 @@ document.addEventListener('click', (e) => {
       d.sleep = Math.min(14, Math.max(0, d.sleep == null ? start : start + Number(el.dataset.step)));
       save();
       renderToday();
+      break;
+    }
+    case 'gif-full': {
+      if (e.target.closest('.via')) return;
+      const id = GIFS[el.dataset.name];
+      openSheet(esc(el.dataset.name), `
+        <img class="gif-full" src="https://i.giphy.com/media/${id}/giphy.webp" alt="${esc(el.dataset.name)} demonstration">
+        <a class="muted small center" href="https://giphy.com/gifs/${id}" target="_blank" rel="noopener">via GIPHY</a>`);
       break;
     }
     case 'workout-day':
