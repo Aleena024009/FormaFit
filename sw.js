@@ -1,4 +1,4 @@
-const CACHE = 'formafit-v21';
+const CACHE = 'formafit-v22';
 const SHELL = [
   './',
   './index.html',
@@ -6,7 +6,7 @@ const SHELL = [
   './app.js',
   './programs.js',
   './demos.js',
-  './videos.js',
+  './gifs.js',
   './meals.js',
   './sync.js',
   './firebase-config.js',
@@ -27,13 +27,21 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== GIF_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
+const GIF_CACHE = 'formafit-gifs';
+
 // Network first so updates show up, cache as offline fallback.
 self.addEventListener('fetch', (e) => {
+  // Demo GIFs: cache first, so ones already seen work offline.
+  if (e.request.method === 'GET' && new URL(e.request.url).hostname === 'i.giphy.com') {
+    e.respondWith(caches.open(GIF_CACHE).then((c) => c.match(e.request).then((hit) =>
+      hit || fetch(e.request).then((res) => { c.put(e.request, res.clone()); return res; }))));
+    return;
+  }
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
     // no-cache: always revalidate with the server so updates arrive right away.

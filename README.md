@@ -22,4 +22,4 @@ Host the folder on any HTTPS static host (GitHub Pages, Netlify, Vercel). Then o
 
 Exercise instructions and muscle data are from [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense, public domain).
 
-Exercise demo videos are embedded from YouTube (youtube-nocookie.com); they belong to their creators and are played through YouTube's standard embedded player.
+Exercise demo GIFs are shown from GIPHY (i.giphy.com) and belong to their creators; each one links back to its GIPHY page.

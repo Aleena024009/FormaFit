@@ -217,11 +217,6 @@ function greeting() {
 }
 
 window.addEventListener('hashchange', route);
-// Swap exercise demos between video and muscle map as the connection changes.
-['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => {
-  if ((location.hash.slice(1) || 'today') === 'workout' && state.profile) renderWorkout();
-}));
-
 /* ---------- Sheet ---------- */
 
 // One pop-up sheet for every form, so screens only show summaries.
@@ -631,7 +626,7 @@ function renderWorkout() {
       ${plan.exercises.map((e) => `
         <section class="card exercise">
           ${exerciseHeader(e)}
-          ${videoPlayer(e.name)}
+          ${exerciseDemo(e.name)}
           ${muscleTags(e.name)}
         </section>`).join('')}
       <p class="muted small center">You can tick off sets on the day. Tap ⓘ for step-by-step help.</p>`;
@@ -644,7 +639,7 @@ function renderWorkout() {
         return `
           <section class="card exercise ${count >= sets ? 'complete' : ''}">
             ${exerciseHeader(e)}
-            ${videoPlayer(e.name)}
+            ${exerciseDemo(e.name)}
             ${muscleTags(e.name)}
             <div class="row">
               <label class="weight">
@@ -690,7 +685,6 @@ function renderWorkout() {
       <button class="ghost" data-act="sheet-tips">Tips</button>
     </div>
   `;
-  watchClips();
 }
 
 function toggleSet(i, n) {
@@ -947,70 +941,19 @@ function bodyMap(primary = [], secondary = []) {
 
 const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 
-// GIF-style demo: fades between still frames of the video, like the old
-// start/end photos. Tapping it plays the full video in place.
-function videoPlayer(name) {
-  const id = VIDEOS[name];
-  // Demos stream from YouTube; offline, show the muscle map (stored in the app) instead.
-  if (!id || !navigator.onLine) {
-    const demo = demoFor(name);
-    return demo?.muscles.length ? `<div class="ex-media">${bodyMap(demo.muscles, demo.secondary)}</div>` : '';
-  }
-  const frames = VIDEO_FRAMES[name] || [1, 2, 3];
+// Women's demo GIF from GIPHY. The service worker caches each one after it's
+// first seen, so it also shows offline; if it can't load, the muscle map does.
+function exerciseDemo(name) {
+  const id = GIFS[name];
+  const demo = demoFor(name);
+  const map = demo?.muscles.length ? `<div class="ex-media">${bodyMap(demo.muscles, demo.secondary)}</div>` : '';
+  if (!id) return map;
   return `
-    <button type="button" class="video frames frames-${frames.length}" data-act="play" data-video="${id}" aria-label="${esc(name)} demo. Tap to play the video.">
-      ${frames.map((n) => `<img src="https://i.ytimg.com/vi/${id}/hq${n}.jpg" alt="">`).join('')}
-      ${VIDEO_CLIPS[id] ? '<span class="clip" aria-hidden="true"></span>' : ''}
-      <span class="tap-hint">▶ Tap for video</span>
-    </button>`;
+    <figure class="gif-demo" data-fallback="${esc(name)}">
+      <img src="https://i.giphy.com/media/${id}/200w.webp" alt="${esc(name)} demonstration" loading="lazy">
+      <a class="via" href="https://giphy.com/gifs/${id}" target="_blank" rel="noopener">via GIPHY</a>
+    </figure>`;
 }
-
-let clipObserver = null;
-
-// The clip loops muted while its card is on screen and is dropped when it
-// scrolls away. The frames underneath show until YouTube reports playing.
-function watchClips() {
-  if (clipObserver) clipObserver.disconnect();
-  if (!('IntersectionObserver' in window)) return;
-  clipObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
-    const slot = entry.target;
-    const id = slot.closest('[data-video]').dataset.video;
-    const frame = slot.querySelector('iframe');
-    if (entry.isIntersecting && !frame) {
-      const [start, end] = VIDEO_CLIPS[id];
-      const f = document.createElement('iframe');
-      f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&controls=0&playsinline=1&rel=0&disablekb=1&iv_load_policy=3&start=${start}&end=${end}&enablejsapi=1`;
-      f.title = 'Exercise demo';
-      f.allow = 'autoplay; encrypted-media';
-      f.tabIndex = -1;
-      f.dataset.start = start;
-      f.addEventListener('load', () => f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id }), '*'));
-      slot.appendChild(f);
-    } else if (!entry.isIntersecting && frame) {
-      frame.remove();
-    }
-  }), { threshold: 0.5 });
-  $$('.video .clip').forEach((el) => clipObserver.observe(el));
-}
-
-// Player states: 1 playing, 0 ended. On end, jump back to the clip start.
-window.addEventListener('message', (e) => {
-  let host;
-  try { host = new URL(e.origin).hostname; } catch { return; }
-  if (!/(^|\.)youtube(-nocookie)?\.com$/.test(host)) return;
-  let data;
-  try { data = JSON.parse(e.data); } catch { return; }
-  const state = data?.info?.playerState;
-  if (state !== 0 && state !== 1) return;
-  const frame = $$('.video .clip iframe').find((f) => f.contentWindow === e.source);
-  if (!frame) return;
-  if (state === 1) frame.classList.add('playing');
-  else {
-    const send = (func, args = []) => frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
-    send('seekTo', [Number(frame.dataset.start), true]);
-    send('playVideo');
-  }
-});
 
 function muscleTags(name) {
   const demo = demoFor(name);
@@ -1510,16 +1453,6 @@ document.addEventListener('click', (e) => {
       renderToday();
       break;
     }
-    case 'play': {
-      const frame = document.createElement('iframe');
-      frame.className = 'video';
-      frame.src = `https://www.youtube-nocookie.com/embed/${el.dataset.video}?autoplay=1&rel=0&playsinline=1`;
-      frame.title = 'Exercise demo video';
-      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-      frame.allowFullscreen = true;
-      el.replaceWith(frame);
-      break;
-    }
     case 'workout-day':
       workoutOffset = Number(el.dataset.off);
       renderWorkout();
@@ -1583,6 +1516,14 @@ document.addEventListener('click', (e) => {
 });
 
 /* ---------- Boot ---------- */
+
+// A demo GIF that fails to load (offline and not cached yet) becomes the muscle map.
+document.addEventListener('error', (e) => {
+  const fig = e.target.closest?.('.gif-demo');
+  if (!fig) return;
+  const demo = demoFor(fig.dataset.fallback);
+  fig.outerHTML = demo?.muscles.length ? `<div class="ex-media">${bodyMap(demo.muscles, demo.secondary)}</div>` : '';
+}, true);
 
 // Tapping the dark area around the sheet closes it.
 $('#sheet').addEventListener('click', (e) => {
